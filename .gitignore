@@ -1,4 +1,5 @@
-*.txt
+wallets.txt
+aptos_addresses.txt
 .idea
 *__pycache__*
 *.json
