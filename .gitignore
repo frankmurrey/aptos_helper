@@ -1,0 +1,6 @@
+*.txt
+.idea
+*__pycache__*
+*.json
+*.yaml
+tests/
