@@ -23,7 +23,7 @@ class FileManager:
             data = file.read().splitlines()
             return data
 
-    def read_data_from_json_file(self, file_path) -> Union[list, None]:
+    def read_data_from_json_file(self, file_path) -> Union[list, dict, None]:
         if not os.path.exists(file_path):
             return None
         try:
