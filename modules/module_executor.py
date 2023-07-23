@@ -66,7 +66,7 @@ class ModuleExecutor:
             logger.info(f"PK - {self.blur_private_key(wallet_data.wallet)}")
 
             execute_status: bool = self.execute_module(wallet_data=wallet_data,
-                                                       base_url="https://rpc.ankr.com/http/aptos/v1")
+                                                       base_url=self.wallets_storage.get_rpc_url())
 
             if index == wallets_amount - 1:
                 logger.info(f"Process is finished\n")
