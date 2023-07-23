@@ -5,7 +5,8 @@ from modules.base import AptosBase
 from contracts.tokens import (Tokens,
                               Token)
 
-from aptos_sdk.transactions import EntryFunction, TransactionPayload
+from aptos_sdk.transactions import (EntryFunction,
+                                    TransactionPayload)
 from aptos_sdk.type_tag import TypeTag, StructTag
 from aptos_sdk.account import Account
 
@@ -21,10 +22,10 @@ class BridgedTokenClaimer(AptosBase):
                  base_url: str,
                  config: ClaimConfigSchema,
                  proxies: dict = None):
+        super().__init__(base_url=base_url, proxies=proxies)
         self.config = config
         self.base_url = base_url
         self.available_tokens = Tokens().get_aptos_bridge_available_coins()
-        super().__init__(base_url=base_url, proxies=proxies)
 
     def get_unclaimed_amount_of_token_for_address(self,
                                                   address: str,
@@ -78,7 +79,7 @@ class BridgedTokenClaimer(AptosBase):
             gas_limit=int(self.config.gas_limit),
             gas_price=int(self.config.gas_price)
         )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit * 1.2)
+        ClientConfig.max_gas_amount = int(int(self.config.gas_limit) * 1.2)
 
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
