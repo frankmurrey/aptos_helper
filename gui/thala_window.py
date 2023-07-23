@@ -1,8 +1,10 @@
 import yaml
 
 import customtkinter
-from tkinter import messagebox, StringVar, filedialog
-
+from tkinter import (messagebox,
+                     StringVar,
+                     filedialog
+)
 from src.schemas.thala import (ThalaAddLiquidityConfigSchema,
                                ThalaRemoveLiquidityConfigSchema)
 from src.route_manager import (ThalaAddLiquidityConfigValidator,
