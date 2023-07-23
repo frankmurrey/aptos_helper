@@ -1,5 +1,4 @@
 from contracts.base import Chain
-from contracts.tokens import Tokens
 
 from loguru import logger
 
