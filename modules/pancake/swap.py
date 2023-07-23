@@ -1,9 +1,13 @@
 from typing import Union
 
-from aptos_sdk.transactions import EntryFunction, TransactionArgument, Serializer
-from aptos_sdk.type_tag import TypeTag, StructTag
+from aptos_sdk.transactions import (EntryFunction,
+                                    TransactionArgument,
+                                    Serializer)
+from aptos_sdk.type_tag import (TypeTag,
+                                StructTag)
 from aptos_sdk.account import Account
-from aptos_rest_client.client import ResourceNotFound, ClientConfig
+from aptos_rest_client.client import (ResourceNotFound,
+                                      ClientConfig)
 
 from loguru import logger
 
