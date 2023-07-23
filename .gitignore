@@ -1,5 +1,6 @@
 wallets.txt
-aptos_addresses.txt
+evm_addresses.txt
+shius.txt
 .idea
 *__pycache__*
 *.json
