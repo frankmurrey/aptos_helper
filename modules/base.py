@@ -6,8 +6,11 @@ from contracts.base import Token
 from aptos_rest_client import CustomRestClient
 from aptos_rest_client.client import ResourceNotFound
 
-from aptos_sdk.account import Account, AccountAddress
-from aptos_sdk.transactions import RawTransaction, TransactionPayload, EntryFunction
+from aptos_sdk.account import (Account,
+                               AccountAddress)
+from aptos_sdk.transactions import (RawTransaction,
+                                    TransactionPayload,
+                                    EntryFunction)
 
 from loguru import logger
 
@@ -170,7 +173,7 @@ class AptosBase(CustomRestClient):
             time.sleep(1)
 
         response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
-        if response.json()["success"] is True:
+        if response.json().get("success") is True:
             return True
         else:
             return False
