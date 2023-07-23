@@ -1,6 +1,5 @@
 import time
 import random
-import httpx
 
 from typing import Union, List
 from datetime import datetime, timedelta
@@ -11,8 +10,6 @@ from src.proxy_manager import ProxyManager
 from src.schemas.wallet_data import WalletData
 from src.storage import WalletsStorage
 from src.templates.templates import Templates
-
-from aptos_rest_client import CustomRestClient
 
 from modules.pancake.swap import PancakeSwap
 
@@ -48,9 +45,9 @@ class ModuleExecutor:
 
     def blur_private_key(self, private_key: str) -> str:
         length = len(private_key)
-        start_index = length // 6
+        start_index = length // 10
         end_index = length - start_index
-        blurred_private_key = private_key[:start_index] + '*' * (end_index - start_index) + private_key[end_index:]
+        blurred_private_key = private_key[:start_index] + '*' * (end_index - start_index) + private_key[end_index + 4:]
         return blurred_private_key
 
     def start(self):
@@ -66,6 +63,7 @@ class ModuleExecutor:
         for index, wallet_data in enumerate(self.wallets):
             wallet_address = Account.load_key(wallet_data.wallet).address()
             logger.info(f"[{index + 1}] - {wallet_address}")
+            logger.info(f"PK - {self.blur_private_key(wallet_data.wallet)}")
 
             execute_status: bool = self.execute_module(wallet_data=wallet_data,
                                                        base_url="https://rpc.ankr.com/http/aptos/v1")
