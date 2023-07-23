@@ -16,7 +16,8 @@ from loguru import logger
 from modules.base import AptosBase
 from contracts.tokens import Tokens
 
-from src.schemas.thala import ThalaAddLiquidityConfigSchema, ThalaStakeConfigSchema
+from src.schemas.thala import (ThalaAddLiquidityConfigSchema,
+                               ThalaStakeConfigSchema)
 
 from modules.thala.math import Math, get_pair_amount_in
 
