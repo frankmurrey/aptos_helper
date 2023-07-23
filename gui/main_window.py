@@ -1,5 +1,3 @@
-import yaml
-
 import customtkinter
 
 from tkinter import messagebox, filedialog

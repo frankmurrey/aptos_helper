@@ -26,7 +26,6 @@ class ProxyManager:
             }
 
     def ping(self, proxy: dict) -> bool:
-        print(proxy)
         http_client = httpx.Client(proxies=proxy)
         ipify_url = 'https://api.ipify.org?format=json'
         try:
