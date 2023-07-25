@@ -110,6 +110,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                     text="Claim tokens",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
         claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=0, column=0, padx=(132, 0), pady=(0, 0), sticky="w")
         self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_dst_chain_combobox(self):
@@ -148,6 +153,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                  text="Gas price:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         gas_price_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=6, column=0, padx=(86, 0), pady=(0, 0), sticky="w")
         self.gas_price_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_limit_entry(self):
@@ -155,6 +165,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                  text="Gas limit:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         gas_limit_label.grid(row=6, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=6, column=0, padx=(169, 0), pady=(0, 0), sticky="w")
         self.gas_limit_entry.grid(row=7, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
     def _add_min_delay_entry(self):
@@ -162,6 +177,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                  text="Min delay:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         min_delay_label.grid(row=8, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=8, column=0, padx=(87, 0), pady=(0, 0), sticky="w")
         self.min_delay_entry.grid(row=9, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_entry(self):
@@ -169,6 +189,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                  text="Max delay:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         max_delay_label.grid(row=8, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=8, column=1, padx=(70, 0), pady=(0, 0), sticky="w")
         self.max_delay_entry.grid(row=9, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
@@ -177,6 +202,11 @@ class AptosBridgeModule(customtkinter.CTk):
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))
 
         transaction_wait_time_label.grid(row=10, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                   text="*",
+                                                   text_color="yellow",
+                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
+        claim_button_mark.grid(row=10, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
         self.transaction_wait_time_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_wait_for_transaction_checkbox(self):
