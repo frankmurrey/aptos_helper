@@ -50,3 +50,6 @@ class Tokens:
 
     def get_thala_available_coins(self) -> list:
         return [token for token in self.all_tokens if token.is_thala_available]
+
+    def get_liquid_swap_available_coins(self) -> list:
+        return [token for token in self.all_tokens if token.is_liquid_swap_available]
