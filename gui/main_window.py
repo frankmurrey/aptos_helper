@@ -2,7 +2,7 @@ import customtkinter
 
 from tkinter import messagebox, filedialog
 
-from gui.pancake_window import PancakeModule
+from gui.swaps_window import SwapsModule
 from gui.aptos_bridge_window import AptosBridgeModule
 from gui.abel_finance_window import AbleFinanceWindow
 from gui.thala_window import ThalaWindow
@@ -50,8 +50,8 @@ class MainWindow(customtkinter.CTk):
 
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         self.sidebar_pancake_button = customtkinter.CTkButton(self.sidebar_frame,
-                                                              text="Pancake Swap",
-                                                              command=self.add_pancake_tabview)
+                                                              text="Swap",
+                                                              command=self.add_swaps_tabview)
 
         self.sidebar_pancake_button.grid(row=1, column=0, padx=20, pady=10)
         self.sidebar_aptos_bridge_button = customtkinter.CTkButton(self.sidebar_frame,
@@ -120,17 +120,15 @@ class MainWindow(customtkinter.CTk):
                                                                        command=self.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=8, column=0, padx=20, pady=(0, 0))
 
-    def add_pancake_tabview(self):
+    def add_swaps_tabview(self):
         try:
             self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
-            self.tabview.add("Pancake")
-            self.tabview.tab("Pancake").grid_columnconfigure(0, weight=3)
+            self.tabview.add("Swap")
+            self.tabview.tab("Swap").grid_columnconfigure(0, weight=3)
 
-            cake = PancakeModule(tabview=self.tabview)
-            cake.add_all_fields()
-
+            swaps = SwapsModule(tabview=self.tabview)
+            swaps.add_all_fields()
         except Exception as e:
-            print(e)
             pass
 
     def add_aptos_bridge_tabview(self):
@@ -142,7 +140,6 @@ class MainWindow(customtkinter.CTk):
             bridge = AptosBridgeModule(tabview=self.tabview)
             bridge.add_all_fields()
         except Exception as e:
-            print(e)
             pass
 
     def add_abel_finance_tabview(self):
@@ -154,16 +151,18 @@ class MainWindow(customtkinter.CTk):
             abel_finance = AbleFinanceWindow(tabview=self.tabview)
             abel_finance.add_all_fields()
         except Exception as e:
-            print(e)
             pass
 
     def add_thala_tabview(self):
-        self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
-        self.tabview.add("Thala")
-        self.tabview.tab("Thala").grid_columnconfigure(0, weight=3)
+        try:
+            self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
+            self.tabview.add("Thala")
+            self.tabview.tab("Thala").grid_columnconfigure(0, weight=3)
 
-        thala = ThalaWindow(tabview=self.tabview)
-        thala.add_all_fields()
+            thala = ThalaWindow(tabview=self.tabview)
+            thala.add_all_fields()
+        except Exception as e:
+            pass
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)

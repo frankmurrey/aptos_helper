@@ -7,7 +7,8 @@ class Token:
                  is_pancake_available: bool = False,
                  aptos_bridge_handle: str = None,
                  is_abel_available: bool = False,
-                 is_thala_available: bool = False,):
+                 is_thala_available: bool = False,
+                 is_liquid_swap_available: bool = False):
 
         self.contract = contract
         self.address, self.prefix, self.name = contract.split("::")
@@ -16,6 +17,7 @@ class Token:
         self.aptos_bridge_handle = aptos_bridge_handle
         self.is_abel_available = is_abel_available
         self.is_thala_available = is_thala_available
+        self.is_liquid_swap_available = is_liquid_swap_available
 
 
 class Chain:

@@ -15,15 +15,15 @@ from modules.base import AptosBase
 
 from contracts.tokens import Tokens
 
-from src.schemas.pancake import PancakeConfigSchema
+from src.schemas.liquidity_swap import LiqSwSwapConfigSchema
 
 
-class PancakeSwap(AptosBase):
+class LiquiditySwap(AptosBase):
     token: Tokens
-    config: PancakeConfigSchema
+    config: LiqSwSwapConfigSchema
     base_url: str
 
-    def __init__(self, config: PancakeConfigSchema, base_url: str, proxies: dict = None):
+    def __init__(self, config: LiqSwSwapConfigSchema, base_url: str, proxies: dict = None):
         super().__init__(base_url=base_url, proxies=proxies)
         self.token = Tokens()
         self.config = config
@@ -31,11 +31,11 @@ class PancakeSwap(AptosBase):
         self.coin_to_swap = self.token.get_by_name(name_query=self.config.coin_to_swap)
         self.coin_to_receive = self.token.get_by_name(name_query=self.config.coin_to_receive)
 
-        self.pancake_address = self.get_address_from_hex(
-            "0xc7efb4076dbe143cbcd98cfaaa929ecfc8f299203dfff63b95ccb6bfe19850fa")
-
         self.amount_out_decimals = None
         self.amount_in_decimals = None
+
+        self.liq_swap_address = self.get_address_from_hex(
+                "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12")
 
     def get_token_pair_reserve(self) -> Union[dict, None]:
         coin_x = self.coin_to_swap.contract
@@ -58,20 +58,29 @@ class PancakeSwap(AptosBase):
 
             reversed_data = self.get_token_reserve(coin_x=coin_y, coin_y=coin_x)
 
-            reserve_x = reversed_data[coin_y]
-            reserve_y = reversed_data[coin_x]
+            if reversed_data is False:
+                logger.error("Error getting token pair reserve")
+                return None
+
+            reserve_x = reversed_data[coin_x]
+            reserve_y = reversed_data[coin_y]
 
             return {coin_x: reserve_x, coin_y: reserve_y}
 
     def get_token_reserve(self, coin_x: str, coin_y: str) -> Union[dict, None, bool]:
         try:
+            resource_acc_address = self.get_address_from_hex(
+                "0x05a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948")
+
             data = self.account_resource(
-                self.pancake_address,
-                f"{self.pancake_address}::swap::TokenPairReserve"
-                f"<{coin_x}, {coin_y}>"
+                resource_acc_address,
+                f"{self.liq_swap_address}::liquidity_pool::LiquidityPool"
+                f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::Uncorrelated>"
             )
 
-            return {coin_x: data["data"]["reserve_x"], coin_y: data["data"]["reserve_y"]}
+            return {coin_x: data["data"]["coin_x_reserve"]["value"],
+                    coin_y: data["data"]["coin_y_reserve"]["value"]}
+
         except ResourceNotFound:
             return None
 
@@ -149,10 +158,11 @@ class PancakeSwap(AptosBase):
         ]
 
         payload = EntryFunction.natural(
-            f"{self.pancake_address}::router",
-            "swap_exact_input",
+            f"{self.liq_swap_address}::scripts_v2",
+            "swap",
             [TypeTag(StructTag.from_str(self.coin_to_swap.contract)),
-             TypeTag(StructTag.from_str(self.coin_to_receive.contract))],
+             TypeTag(StructTag.from_str(self.coin_to_receive.contract)),
+             TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::Uncorrelated"))],
             transaction_args
         )
 
@@ -177,7 +187,7 @@ class PancakeSwap(AptosBase):
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
 
-        txn_info_message = f"Swap (Pancake) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
+        txn_info_message = f"Swap (Liquid Swap) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
@@ -188,3 +198,4 @@ class PancakeSwap(AptosBase):
             txn_info_message=txn_info_message)
 
         return txn_status
+
