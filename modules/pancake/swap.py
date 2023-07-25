@@ -177,7 +177,7 @@ class PancakeSwap(AptosBase):
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
 
-        txn_info_message = f"Swap {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
+        txn_info_message = f"Swap (Pancake) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
