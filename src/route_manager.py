@@ -142,7 +142,7 @@ class RouteManagerTransferTypeBase(RouteManagerBase):
         return True
 
 
-class PancakeRouteValidator(RouteManagerTransferTypeBase):
+class SwapRouteValidator(RouteManagerTransferTypeBase):
     config: PancakeConfigSchema
 
     def __init__(self, config):
