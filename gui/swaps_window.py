@@ -1,12 +1,15 @@
 import yaml
 
 import customtkinter
+
 from tkinter import (messagebox,
                      StringVar,
                      filedialog)
 
 from src.schemas.pancake import PancakeConfigSchema
-from src.route_manager import PancakeRouteValidator
+from src.schemas.liquidity_swap import LiqSwSwapConfigSchema
+
+from src.route_manager import SwapRouteValidator
 from src.storage import WalletsStorage
 
 from contracts.tokens import Tokens
@@ -14,33 +17,37 @@ from contracts.tokens import Tokens
 from modules.module_executor import ModuleExecutor
 
 
-class PancakeModule(customtkinter.CTk):
-    config: PancakeConfigSchema
+class SwapsModule(customtkinter.CTk):
 
     def __init__(self, tabview):
         super().__init__()
 
         self.tabview = tabview
-        self.data = PancakeConfigSchema()
+        self._tab_name = "Swap"
+        self.data = None
         self.wallets_storage = WalletsStorage()
 
-        self.coin_to_swap_combobox = customtkinter.CTkComboBox(self.tabview.tab("Pancake"),
+        self.swap_protocol_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+                                                                values=self.swap_protocol_options,
+                                                                command=self.protocol_change_event)
+
+        self.coin_to_swap_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
                                                                values=self.coin_to_swap_options,
                                                                command=self.update_coin_combos)
 
-        self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.tabview.tab("Pancake"),
-                                                                  values=self.coin_to_receive_options,
+        self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+                                                                  values=self.coin_to_receive_options(),
                                                                   command=self.update_coin_combos)
 
-        self.min_amount_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.min_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                        width=140,
                                                        placeholder_text="10")
 
-        self.max_amount_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.max_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                        width=140,
                                                        placeholder_text="20")
 
-        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.tabview.tab("Pancake"),
+        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                                    text="Send all balance",
                                                                    checkbox_width=18,
                                                                    checkbox_height=18,
@@ -48,29 +55,29 @@ class PancakeModule(customtkinter.CTk):
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
 
-        self.empty_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        self.empty_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                   text="",
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=70)
 
-        self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=70)
 
-        self.slippage_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.slippage_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                      width=70,
                                                      textvariable=StringVar(value="0.5"))
 
-        self.min_delay_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.min_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=140,
                                                       textvariable=StringVar(value="20"))
 
-        self.max_delay_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.max_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=140,
                                                       textvariable=StringVar(value="40"))
 
-        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.tabview.tab("Pancake"),
+        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                                        text="Wait for transaction",
                                                                        checkbox_width=18,
                                                                        checkbox_height=18,
@@ -78,71 +85,78 @@ class PancakeModule(customtkinter.CTk):
                                                                        offvalue=False,
                                                                        command=self.wait_for_transaction_checkbox_event)
 
-        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.tabview.tab("Pancake"),
+        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                                   width=140,
                                                                   state="disabled")
 
-        self.next_button = customtkinter.CTkButton(self.tabview.tab("Pancake"),
+        self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
                                                    width=140,
                                                    command=self.next_button_event)
 
-        self.test_mode_checkbox = customtkinter.CTkCheckBox(self.tabview.tab("Pancake"),
+        self.test_mode_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                             text="Test mode",
                                                             checkbox_width=18,
                                                             checkbox_height=18,
                                                             onvalue=True,
                                                             offvalue=False)
 
-        self.save_config_button = customtkinter.CTkButton(self.tabview.tab("Pancake"),
+        self.save_config_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                           text="Save cfg",
                                                           width=70,
                                                           command=self.save_config_event)
 
-        self.load_config_button = customtkinter.CTkButton(self.tabview.tab("Pancake"),
+        self.load_config_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                           text="Load cfg",
                                                           width=70,
                                                           command=self.load_config_event)
 
+    def _add_swap_protocol_fields(self):
+        swap_protocol_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+                                                        text="Swap protocol:",
+                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
+        swap_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+
     def _add_coin_to_swap_fields(self):
-        coin_to_swap_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        coin_to_swap_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                     text="Coin to swap:",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_swap_label.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.coin_to_swap_combobox.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        coin_to_swap_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.coin_to_swap_combobox.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_coin_to_receive_fields(self):
-        coin_to_receive_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        coin_to_receive_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                        text="Coin to receive:",
                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_receive_label.grid(row=1, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.coin_to_receive_combobox.grid(row=2, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        coin_to_receive_label.grid(row=2, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        self.coin_to_receive_combobox.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_min_amount_out_fields(self):
-        min_amount_out_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        min_amount_out_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                       text="Min amount:",
                                                       font=customtkinter.CTkFont(size=12, weight="bold"))
-        min_amount_out_label.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_amount_entry.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        min_amount_out_label.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.min_amount_entry.grid(row=5, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_amount_out_fields(self):
-        max_amount_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        max_amount_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                   text="Max amount:",
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_amount_label.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.max_amount_entry.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        max_amount_label.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        self.max_amount_entry.grid(row=5, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_send_all_balance_checkbox(self):
-        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.send_all_balance_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
 
     def _add_empty_label(self):
         self.empty_label.grid(row=7, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_price_fields(self):
-        gas_price_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        gas_price_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                  text="Gas price:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -150,7 +164,7 @@ class PancakeModule(customtkinter.CTk):
         self.gas_price_entry.grid(row=9, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_limit_fields(self):
-        gas_limit_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        gas_limit_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                  text="Gas limit:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -158,7 +172,7 @@ class PancakeModule(customtkinter.CTk):
         self.gas_limit_entry.grid(row=9, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
     def _add_slippage_fields(self):
-        slippage_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        slippage_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                 text="Slippage %:",
                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -166,7 +180,7 @@ class PancakeModule(customtkinter.CTk):
         self.slippage_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_min_delay_fields(self):
-        min_delay_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        min_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                  text="Min delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -174,7 +188,7 @@ class PancakeModule(customtkinter.CTk):
         self.min_delay_entry.grid(row=13, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_fields(self):
-        max_delay_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        max_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                  text="Max delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -182,7 +196,7 @@ class PancakeModule(customtkinter.CTk):
         self.max_delay_entry.grid(row=13, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
-        transaction_wait_time_label = customtkinter.CTkLabel(self.tabview.tab("Pancake"),
+        transaction_wait_time_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                              text="Transaction wait time (sec):",
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))
 
@@ -193,7 +207,7 @@ class PancakeModule(customtkinter.CTk):
         self.wait_for_transaction_checkbox.grid(row=16, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=17, column=0, padx=(20, 0), pady=(140, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=17, column=0, padx=(20, 0), pady=(95, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=18, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -204,46 +218,65 @@ class PancakeModule(customtkinter.CTk):
     def _add_load_config_button(self):
         self.load_config_button.grid(row=18, column=1, padx=(80, 0), pady=(15, 0), sticky="w")
 
-    def add_all_fields(self):
-        self._add_coin_to_swap_fields()
-        self._add_coin_to_receive_fields()
-        self._add_min_amount_out_fields()
-        self._add_max_amount_out_fields()
-        self._add_send_all_balance_checkbox()
-        self._add_empty_label()
-        self._add_gas_price_fields()
-        self._add_gas_limit_fields()
-        self._add_slippage_fields()
-        self._add_min_delay_fields()
-        self._add_max_delay_fields()
-        self._add_transaction_wait_time_entry()
-        self._add_wait_for_transaction_checkbox()
-        self._add_next_button()
-        self._add_test_mode_checkbox()
-        self._add_save_config_button()
-        self._add_load_config_button()
-
     def get_pancake_available_coin_names(self):
         pancake_coins = Tokens().get_pancake_available_coins()
         pancake_coin_names = [coin.symbol.upper() for coin in pancake_coins]
         return pancake_coin_names
 
-    @property
-    def coin_to_swap_options(self):
-        return self.get_pancake_available_coin_names()
+    def get_liquid_swap_available_coin_names(self):
+        liquid_swap_coins = Tokens().get_liquid_swap_available_coins()
+        liquid_swap_coin_names = [coin.symbol.upper() for coin in liquid_swap_coins]
+        return liquid_swap_coin_names
 
     @property
+    def coin_to_swap_options(self):
+        current_swap_protocol = self.swap_protocol_combobox.get()
+        if current_swap_protocol == "Pancake":
+            protocol_available_coins = self.get_pancake_available_coin_names()
+
+        elif current_swap_protocol == "Liquid Swap":
+            protocol_available_coins = self.get_liquid_swap_available_coin_names()
+
+        else:
+            protocol_available_coins = []
+
+        return protocol_available_coins
+
+    @property
+    def swap_protocol_options(self):
+        return ["Pancake", "Liquid Swap"]
+
     def coin_to_receive_options(self):
         coin_to_swap = self.coin_to_swap_combobox.get()
-        pancake_coins = Tokens().get_pancake_available_coins()
-        pancake_coin_names = [coin.symbol.upper() for coin in pancake_coins]
-        pancake_coin_names.remove(coin_to_swap)
-        return pancake_coin_names
+
+        current_protocol = self.swap_protocol_combobox.get()
+        if current_protocol == "Pancake":
+            protocol_available_coins = self.get_pancake_available_coin_names()
+
+        elif current_protocol == "Liquid Swap":
+            protocol_available_coins = self.get_liquid_swap_available_coin_names()
+
+        else:
+            protocol_available_coins = []
+
+        if not protocol_available_coins:
+            return []
+
+        current_protocol_coin_names = [coin.upper() for coin in protocol_available_coins]
+        current_protocol_coin_names.remove(coin_to_swap)
+
+        return current_protocol_coin_names
+
+    def protocol_change_event(self, *args):
+        self.coin_to_swap_combobox.configure(values=self.coin_to_swap_options)
+        self.coin_to_swap_combobox.set(self.coin_to_swap_options[0])
+        self.coin_to_receive_combobox.configure(values=self.coin_to_receive_options())
+        self.coin_to_receive_combobox.set(self.coin_to_receive_options()[0])
 
     def update_coin_combos(self, *args):
         self.coin_to_swap_combobox.configure(values=self.coin_to_swap_options)
-        self.coin_to_receive_combobox.configure(values=self.coin_to_receive_options)
-        self.coin_to_receive_combobox.set(self.coin_to_receive_options[0])
+        self.coin_to_receive_combobox.configure(values=self.coin_to_receive_options())
+        self.coin_to_receive_combobox.set(self.coin_to_receive_options()[0])
 
     def send_all_balance_checkbox_event(self):
         checkbox_status = self.send_all_balance_checkbox.get()
@@ -267,6 +300,15 @@ class PancakeModule(customtkinter.CTk):
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def get_values(self):
+        swap_protocol = self.swap_protocol_combobox.get()
+        if swap_protocol == "Pancake":
+            self.data = PancakeConfigSchema()
+        elif swap_protocol == "Liquid Swap":
+            self.data = LiqSwSwapConfigSchema()
+        else:
+            messagebox.showerror("Error", "Swap protocol not selected")
+            return
+
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
         self.data.coin_to_receive = self.coin_to_receive_combobox.get()
         self.data.min_amount_out = self.min_amount_entry.get()
@@ -320,7 +362,7 @@ class PancakeModule(customtkinter.CTk):
             self.test_mode_checkbox.deselect()
 
     def check_config(self):
-        route_validator = PancakeRouteValidator(self.get_values())
+        route_validator = SwapRouteValidator(self.get_values())
         validation_status = route_validator.validate()
         if validation_status is not True:
             messagebox.showerror("Error", validation_status)
@@ -333,17 +375,26 @@ class PancakeModule(customtkinter.CTk):
         if pre_build_status is not True:
             return
 
+        swap_protocol = self.swap_protocol_combobox.get()
+        if swap_protocol == "Pancake":
+            self.data = PancakeConfigSchema()
+        elif swap_protocol == "Liquid Swap":
+            self.data = LiqSwSwapConfigSchema()
+        else:
+            messagebox.showerror("Error", "Swap protocol not selected")
+            return
+
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
         self.data.coin_to_receive = self.coin_to_receive_combobox.get()
-        self.data.min_amount_out = float(self.min_amount_entry.get()) if self.data.min_amount_out.strip(" ") != "" else ""
-        self.data.max_amount_out = float(self.max_amount_entry.get()) if self.data.max_amount_out.strip(" ") != "" else ""
+        self.data.min_amount_out = float(self.min_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
+        self.data.max_amount_out = float(self.max_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
         self.data.gas_price = float(self.gas_price_entry.get())
         self.data.gas_limit = int(self.gas_limit_entry.get())
         self.data.slippage = float(self.slippage_entry.get())
-        self.data.min_delay_sec = float(self.min_delay_entry.get()) if self.data.min_delay_sec.strip(" ") != "" else ""
-        self.data.max_delay_sec = float(self.max_delay_entry.get()) if self.data.max_delay_sec.strip(" ") != "" else ""
-        self.data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get()) if self.data.txn_wait_timeout_sec.strip(" ") != "" else ""
+        self.data.min_delay_sec = float(self.min_delay_entry.get()) if self.min_delay_entry.get().strip(" ") != "" else ""
+        self.data.max_delay_sec = float(self.max_delay_entry.get()) if self.min_delay_entry.get().strip(" ") != "" else ""
+        self.data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get()) if self.wait_for_transaction_checkbox.get() else ""
         self.data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
         self.data.test_mode = self.test_mode_checkbox.get()
 
@@ -369,6 +420,8 @@ class PancakeModule(customtkinter.CTk):
             yaml.dump(config_dict, file)
 
     def load_config_event(self):
+        swap_protocol = self.swap_protocol_combobox.get()
+
         file_path = filedialog.askopenfilename(initialdir=".",
                                                title="Select config",
                                                filetypes=(("YAML files", "*.yaml"), ("all files", "*.*")))
@@ -378,10 +431,20 @@ class PancakeModule(customtkinter.CTk):
         with open(file_path, "r") as file:
             config_dict = yaml.load(file, Loader=yaml.FullLoader)
         try:
-            config = PancakeConfigSchema(**config_dict)
-            if config.module_name != "pancake":
-                messagebox.showerror("Error", f"Wrong config file selected, current module is <pancake>,"
-                                              f" selected module is <{config.module_name}>")
+            if swap_protocol == "Pancake":
+                config = PancakeConfigSchema(**config_dict)
+                if config.module_name != "pancake":
+                    messagebox.showerror("Error", f"Wrong config file selected, current module is <pancake>,"
+                                                  f" selected module is <{config.module_name}>")
+                    return
+            elif swap_protocol == "Liquid Swap":
+                config = LiqSwSwapConfigSchema(**config_dict)
+                if config.module_name != "liquidityswap_swap":
+                    messagebox.showerror("Error", f"Wrong config file selected, current module is <liquidity_swap>,"
+                                                  f" selected module is <{config.module_name}>")
+                    return
+            else:
+                messagebox.showerror("Error", "Swap protocol not selected")
                 return
 
             self.data = config
@@ -415,6 +478,25 @@ class PancakeModule(customtkinter.CTk):
                                                "Check all params carefully, if ready smash YES.")
         if yesno is False:
             return
-
         module_executor = ModuleExecutor(config)
         module_executor.start()
+
+    def add_all_fields(self):
+        self._add_swap_protocol_fields()
+        self._add_coin_to_swap_fields()
+        self._add_coin_to_receive_fields()
+        self._add_min_amount_out_fields()
+        self._add_max_amount_out_fields()
+        self._add_send_all_balance_checkbox()
+        self._add_empty_label()
+        self._add_gas_price_fields()
+        self._add_gas_limit_fields()
+        self._add_slippage_fields()
+        self._add_min_delay_fields()
+        self._add_max_delay_fields()
+        self._add_transaction_wait_time_entry()
+        self._add_wait_for_transaction_checkbox()
+        self._add_next_button()
+        self._add_test_mode_checkbox()
+        self._add_save_config_button()
+        self._add_load_config_button()
