@@ -12,6 +12,8 @@ from src.storage import WalletsStorage
 from src.templates.templates import Templates
 
 from modules.pancake.swap import PancakeSwap
+from modules.liquidity_swap.swap import LiquiditySwap
+
 
 from modules.the_aptos_bridge.bridge import AptosBridge
 from modules.the_aptos_bridge.claim import BridgedTokenClaimer
@@ -143,6 +145,14 @@ class ModuleExecutor:
                           proxies=proxy)
             remove_liq_status = thala.send_remove_liquidity_transaction(private_key=wallet_data.wallet)
             execution_status = remove_liq_status
+
+        elif self.module_name == "liquidityswap_swap":
+            liq_swap = LiquiditySwap(base_url=base_url,
+                                     config=self.config,
+                                     proxies=proxy)
+
+            swap_status = liq_swap.make_swap(private_key=wallet_data.wallet)
+            execution_status = swap_status
 
         return execution_status
 
