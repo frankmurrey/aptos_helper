@@ -36,8 +36,7 @@ class SwapsModule(customtkinter.CTk):
                                                                command=self.update_coin_combos)
 
         self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
-                                                                  values=self.coin_to_receive_options(),
-                                                                  command=self.update_coin_combos)
+                                                                  values=self.coin_to_receive_options())
 
         self.min_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                        width=140,
