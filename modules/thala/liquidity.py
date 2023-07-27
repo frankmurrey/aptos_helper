@@ -9,7 +9,8 @@ from aptos_sdk.type_tag import (TypeTag,
                                 StructTag)
 from aptos_sdk.account import (Account,
                                AccountAddress)
-from aptos_rest_client.client import ClientConfig
+from aptos_rest_client.client import (ClientConfig,
+                                      ResourceNotFound)
 
 from loguru import logger
 
@@ -64,13 +65,16 @@ class Thala(AptosBase):
     def get_wallet_lp_balance(self,
                               account_address: AccountAddress,
                               lp_address: str):
-        wallet_lp_resource = self.account_resource(
-            account_address,
-            f"0x1::coin::CoinStore<{lp_address}>"
-        )
-        wallet_lp_balance = wallet_lp_resource["data"]["coin"]["value"]
+        try:
+            wallet_lp_resource = self.account_resource(
+                account_address,
+                f"0x1::coin::CoinStore<{lp_address}>"
+            )
+            wallet_lp_balance = wallet_lp_resource["data"]["coin"]["value"]
 
-        return wallet_lp_balance
+            return wallet_lp_balance
+        except ResourceNotFound:
+            return None
 
     def get_staked_lp_amount(self,
                              wallet_address: AccountAddress,
@@ -115,6 +119,8 @@ class Thala(AptosBase):
 
         wallet_lp_balance = self.get_wallet_lp_balance(account_address,
                                                        lp_addr)
+        if wallet_lp_balance is None:
+            return None
 
         lp_ratio = Math.fraction(int(wallet_lp_balance) // 100,
                                  int(lp_supply))
@@ -262,8 +268,8 @@ class Thala(AptosBase):
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
 
-        txn_info_message = f"Add liquidity: {self.amount_out_x_decimals} {self.coin_x.symbol.upper()}/" \
-                           f"{self.amount_out_y_decimals} {self.coin_y.symbol.upper()}"
+        txn_info_message = f"Add liquidity (Thala): ({self.amount_out_x_decimals} {self.coin_x.symbol.upper()}-" \
+                           f"{self.amount_out_y_decimals} {self.coin_y.symbol.upper()})"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
@@ -290,7 +296,6 @@ class Thala(AptosBase):
             account_address=sender_account.address()
         )
         if lp_ratio is None:
-            logger.error(f"Error getting lp ratio")
             return
 
         liquidity_pool_data = self.get_liquidity_pool_data(
@@ -402,7 +407,7 @@ class Thala(AptosBase):
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
 
-        txn_info_message = f"Remove liquidity of pair: {self.coin_x.symbol.upper()}/{self.coin_y.symbol.upper()}"
+        txn_info_message = f"Remove liquidity (Thala): ({self.coin_x.symbol.upper()}-{self.coin_y.symbol.upper()})"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
@@ -429,7 +434,6 @@ class Thala(AptosBase):
 
         lp_addr = f"0x48271d39d0b05bd6efca2278f22277d6fcc375504f9839fd73f74ace240861af::stable_pool::StablePoolToken" \
                   f"<{self.coin_x.contract}, {self.coin_y.contract}, {base_pool_address_x}, {base_pool_address_y}>"
-        print(lp_addr)
         wallet_lp_balance = self.get_wallet_lp_balance(
             account_address=sender_account.address(),
             lp_address=lp_addr
