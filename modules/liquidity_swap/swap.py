@@ -18,7 +18,7 @@ from contracts.tokens import Tokens
 from src.schemas.liquidity_swap import LiqSwSwapConfigSchema
 
 
-class LiquiditySwap(AptosBase):
+class Swap(AptosBase):
     token: Tokens
     config: LiqSwSwapConfigSchema
     base_url: str
@@ -41,52 +41,44 @@ class LiquiditySwap(AptosBase):
         coin_x = self.coin_to_swap.contract
         coin_y = self.coin_to_receive.contract
 
-        data = self.get_token_reserve(coin_x=coin_x, coin_y=coin_y)
+        resource_acc_address = self.get_address_from_hex(
+            "0x05a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948")
+        res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
+                      f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::Stable>"
 
-        if data is False:
+        resource_data = self.get_token_reserve(coin_x=coin_x,
+                                               coin_y=coin_y,
+                                               resource_address=resource_acc_address,
+                                               payload=res_payload)
+
+        if resource_data is False:
             logger.error("Error getting token pair reserve")
             return None
 
-        if data is not None:
-            reserve_x = data[coin_x]
-            reserve_y = data[coin_y]
+        if resource_data is not None:
+            reserve_x = resource_data["data"]["coin_x_reserve"]["value"]
+            reserve_y = resource_data["data"]["coin_y_reserve"]["value"]
 
             return {coin_x: reserve_x, coin_y: reserve_y}
         else:
             coin_x = self.coin_to_swap.contract
             coin_y = self.coin_to_receive.contract
 
-            reversed_data = self.get_token_reserve(coin_x=coin_y, coin_y=coin_x)
+            res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
+                          f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::Uncorrelated>"
 
+            reversed_data = self.get_token_reserve(coin_x=coin_y,
+                                                   coin_y=coin_x,
+                                                   resource_address=resource_acc_address,
+                                                   payload=res_payload)
             if reversed_data is False:
                 logger.error("Error getting token pair reserve")
                 return None
 
-            reserve_x = reversed_data[coin_x]
-            reserve_y = reversed_data[coin_y]
+            reserve_x = reversed_data["data"]["coin_x_reserve"]["value"]
+            reserve_y = reversed_data["data"]["coin_y_reserve"]["value"]
 
             return {coin_x: reserve_x, coin_y: reserve_y}
-
-    def get_token_reserve(self, coin_x: str, coin_y: str) -> Union[dict, None, bool]:
-        try:
-            resource_acc_address = self.get_address_from_hex(
-                "0x05a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948")
-
-            data = self.account_resource(
-                resource_acc_address,
-                f"{self.liq_swap_address}::liquidity_pool::LiquidityPool"
-                f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::Uncorrelated>"
-            )
-
-            return {coin_x: data["data"]["coin_x_reserve"]["value"],
-                    coin_y: data["data"]["coin_y_reserve"]["value"]}
-
-        except ResourceNotFound:
-            return None
-
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            return False
 
     def get_amount_in(self, amount_out: int):
         tokens_reserve: dict = self.get_token_pair_reserve()
