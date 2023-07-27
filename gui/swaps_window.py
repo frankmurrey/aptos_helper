@@ -122,7 +122,7 @@ class SwapsModule(customtkinter.CTk):
                                                     text="Coin to swap:",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_swap_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        coin_to_swap_label.grid(row=2, column=0, padx=(20, 0), pady=(20, 0), sticky="w")
         self.coin_to_swap_combobox.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_coin_to_receive_fields(self):
@@ -130,7 +130,7 @@ class SwapsModule(customtkinter.CTk):
                                                        text="Coin to receive:",
                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_receive_label.grid(row=2, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        coin_to_receive_label.grid(row=2, column=1, padx=(0, 20), pady=(20, 0), sticky="w")
         self.coin_to_receive_combobox.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_min_amount_out_fields(self):
@@ -206,7 +206,7 @@ class SwapsModule(customtkinter.CTk):
         self.wait_for_transaction_checkbox.grid(row=16, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=17, column=0, padx=(20, 0), pady=(95, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=17, column=0, padx=(20, 0), pady=(120, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=18, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
