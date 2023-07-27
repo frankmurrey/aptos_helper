@@ -16,14 +16,14 @@ from contracts.tokens import Tokens
 from modules.module_executor import ModuleExecutor
 
 
-class ThalaWindow(customtkinter.CTk):
+class Liquidity(customtkinter.CTk):
     add_liquidity_config: ThalaAddLiquidityConfigSchema
     remove_liquidity_config: ThalaRemoveLiquidityConfigSchema
 
     def __init__(self, tabview):
         super().__init__()
         self.tabview = tabview
-        self._tab_name = "Thala"
+        self._tab_name = "Liquidity"
         self.add_liq_data = ThalaAddLiquidityConfigSchema()
         self.remove_liq_data = ThalaRemoveLiquidityConfigSchema()
         self.wallets_storage = WalletsStorage()
