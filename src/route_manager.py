@@ -300,7 +300,7 @@ class AbleFinanceRedeemConfigValidator(RouteManagerTransferTypeBase):
         return True
 
 
-class ThalaAddLiquidityConfigValidator(RouteManagerTransferTypeBase):
+class AddLiquidityConfigValidator(RouteManagerTransferTypeBase):
     config: ThalaAddLiquidityConfigSchema
 
     def __init__(self, config):
@@ -326,7 +326,7 @@ class ThalaAddLiquidityConfigValidator(RouteManagerTransferTypeBase):
         return True
 
 
-class ThalaRemoveLiquidityConfigValidator(RouteManagerTransferTypeBase):
+class RemoveLiquidityConfigValidator(RouteManagerTransferTypeBase):
     config: ThalaRemoveLiquidityConfigSchema
 
     def __init__(self, config):
