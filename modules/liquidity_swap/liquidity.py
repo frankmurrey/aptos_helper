@@ -14,6 +14,10 @@ from loguru import logger
 from modules.base import AptosBase
 from contracts.tokens import Tokens
 
+from modules.liquidity_swap.math import (get_coins_out_with_fees_stable,
+                                         get_optimal_liquidity_amount,
+                                         d)
+
 from src.schemas.liquidity_swap import LiqSwAddLiquidityConfigSchema
 
 
@@ -29,6 +33,8 @@ class Liquidity(AptosBase):
 
         self.coin_x = self.tokens.get_by_name(name_query=self.config.coin_x)
         self.coin_y = self.tokens.get_by_name(name_query=self.config.coin_y)
+
+        self.resource_data = None
 
         self.amount_out_x_decimals = None
         self.amount_out_y_decimals = None
@@ -58,9 +64,7 @@ class Liquidity(AptosBase):
         res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
                       f"<{self.coin_x.contract}, {self.coin_y.contract}, {self.liq_swap_address}::curves::Stable>"
 
-        resource_data = self.get_token_reserve(coin_x=self.coin_x,
-                                               coin_y=self.coin_y,
-                                               resource_address=resource_acc_address,
+        resource_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                payload=res_payload)
 
         if resource_data is False:
@@ -68,6 +72,8 @@ class Liquidity(AptosBase):
             return None
 
         if resource_data is not None:
+            self.resource_data = resource_data
+
             reserve_x = resource_data["data"]["coin_x_reserve"]["value"]
             reserve_y = resource_data["data"]["coin_y_reserve"]["value"]
 
@@ -81,18 +87,17 @@ class Liquidity(AptosBase):
     def get_amount_y_out(self,
                          amount_out: int,
                          tokens_reserve):
-        reserve_x = tokens_reserve[self.coin_x.contract]
-        reserve_y = tokens_reserve[self.coin_y.contract]
+        reserve_x = int(tokens_reserve[self.coin_x.contract])
+        reserve_y = int(tokens_reserve[self.coin_y.contract])
 
         if reserve_x is None or reserve_y is None:
             return None
 
-        amount_in_with_fee = amount_out * 10000
-
-        numerator = amount_in_with_fee * int(reserve_y)
-        denominator = int(reserve_x) * 10000 + amount_in_with_fee
-
-        amount_in = numerator // denominator
+        amount_in = get_optimal_liquidity_amount(
+            x_desired=d(amount_out),
+            x_reserve=d(reserve_x),
+            y_reserve=d(reserve_y)
+        )
 
         return amount_in
 
@@ -147,7 +152,7 @@ class Liquidity(AptosBase):
             logger.error("Amount out is 0")
             return None
 
-        amount_out_y_slippage = amount_out_y - (amount_out_y * self.config.slippage / 100)
+        amount_out_y_slippage = int(amount_out_y) - (int(amount_out_y) * self.config.slippage / 100)
 
         amount_out_y_decimals = amount_out_y / 10 ** self.get_token_decimals(token_obj=self.coin_y)
         if amount_out_y > wallet_token_balance_y:
@@ -195,8 +200,11 @@ class Liquidity(AptosBase):
         simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
                                                  sender_account=sender_account)
 
-        txn_info_message = f"Add liquidity (Liquid Swap) - {self.amount_out_x_decimals} ({self.coin_x.name}) +" \
-                           f" {self.amount_out_y_decimals} ({self.coin_y.name})."
+        txn_info_message = (
+            f"Add liquidity (Liquid Swap) - " 
+            f"{round(self.amount_out_x_decimals, 4)} ({self.coin_x.name}) + " 
+            f"{round(self.amount_out_y_decimals, 4)} ({self.coin_y.name})."
+        )
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
@@ -270,8 +278,8 @@ class Liquidity(AptosBase):
                                                  sender_account=sender_account)
 
         txn_info_message = f"Remove liquidity (Liquidity Swap): " \
-                           f"({self.amount_out_x_decimals} {self.coin_x.symbol.upper()}-" \
-                           f"{self.amount_out_y_decimals} {self.coin_y.symbol.upper()})"
+                           f"({round(self.amount_out_x_decimals, 4)} {self.coin_x.symbol.upper()} / " \
+                           f"{round(self.amount_out_y_decimals, 4)} {self.coin_y.symbol.upper()})"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
