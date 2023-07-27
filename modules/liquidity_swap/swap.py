@@ -1,4 +1,5 @@
 from typing import Union
+from math import pow
 
 from aptos_sdk.transactions import (EntryFunction,
                                     TransactionArgument,
@@ -12,6 +13,7 @@ from aptos_rest_client.client import (ResourceNotFound,
 from loguru import logger
 
 from modules.base import AptosBase
+from modules.liquidity_swap.math import get_coins_out_with_fees_stable, d
 
 from contracts.tokens import Tokens
 
@@ -31,6 +33,8 @@ class Swap(AptosBase):
         self.coin_to_swap = self.token.get_by_name(name_query=self.config.coin_to_swap)
         self.coin_to_receive = self.token.get_by_name(name_query=self.config.coin_to_receive)
 
+        self.resource_data = None
+
         self.amount_out_decimals = None
         self.amount_in_decimals = None
 
@@ -46,9 +50,7 @@ class Swap(AptosBase):
         res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
                       f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::Stable>"
 
-        resource_data = self.get_token_reserve(coin_x=coin_x,
-                                               coin_y=coin_y,
-                                               resource_address=resource_acc_address,
+        resource_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                payload=res_payload)
 
         if resource_data is False:
@@ -56,6 +58,8 @@ class Swap(AptosBase):
             return None
 
         if resource_data is not None:
+            self.resource_data = resource_data
+
             reserve_x = resource_data["data"]["coin_x_reserve"]["value"]
             reserve_y = resource_data["data"]["coin_y_reserve"]["value"]
 
@@ -67,14 +71,13 @@ class Swap(AptosBase):
             res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
                           f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::Uncorrelated>"
 
-            reversed_data = self.get_token_reserve(coin_x=coin_y,
-                                                   coin_y=coin_x,
-                                                   resource_address=resource_acc_address,
+            reversed_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                    payload=res_payload)
             if reversed_data is False:
                 logger.error("Error getting token pair reserve")
                 return None
 
+            self.resource_data = reversed_data
             reserve_x = reversed_data["data"]["coin_x_reserve"]["value"]
             reserve_y = reversed_data["data"]["coin_y_reserve"]["value"]
 
@@ -85,18 +88,20 @@ class Swap(AptosBase):
         if tokens_reserve is None:
             return None
 
-        reserve_x = tokens_reserve[self.coin_to_swap.contract]
-        reserve_y = tokens_reserve[self.coin_to_receive.contract]
+        reserve_x = int(tokens_reserve[self.coin_to_swap.contract])
+        reserve_y = int(tokens_reserve[self.coin_to_receive.contract])
 
         if reserve_x is None or reserve_y is None:
             return None
-
-        amount_in_with_fee = amount_out * 9975
-
-        numerator = amount_in_with_fee * int(reserve_y)
-        denominator = int(reserve_x) * 10000 + amount_in_with_fee
-
-        amount_in = numerator // denominator
+        pool_fee = int(self.resource_data["data"]["fee"])
+        amount_in = get_coins_out_with_fees_stable(
+            coin_in=d(amount_out),
+            reserve_in=d(reserve_x),
+            reserve_out=d(reserve_y),
+            scale_in=d(pow(10, self.get_token_decimals(token_obj=self.coin_to_swap))),
+            scale_out=d(pow(10, self.get_token_decimals(token_obj=self.coin_to_receive))),
+            fee=d(pool_fee)
+        )
 
         return amount_in
 
@@ -127,8 +132,7 @@ class Swap(AptosBase):
                 decimals=self.get_token_decimals(token_obj=self.coin_to_swap)
             )
 
-        slippage = self.config.slippage
-        amount_in = int(self.get_amount_in(amount_out=amount_out) * (1 - (slippage / 100)))
+        amount_in = int(self.get_amount_in(amount_out=amount_out))
 
         if amount_in is None:
             return None
@@ -151,10 +155,10 @@ class Swap(AptosBase):
 
         payload = EntryFunction.natural(
             f"{self.liq_swap_address}::scripts_v2",
-            "swap",
+            "swap_unchecked",
             [TypeTag(StructTag.from_str(self.coin_to_swap.contract)),
              TypeTag(StructTag.from_str(self.coin_to_receive.contract)),
-             TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::Uncorrelated"))],
+             TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::Stable"))],
             transaction_args
         )
 
