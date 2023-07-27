@@ -12,7 +12,7 @@ from src.storage import WalletsStorage
 from src.templates.templates import Templates
 
 from modules.pancake.swap import PancakeSwap
-from modules.liquidity_swap.swap import LiquiditySwap
+from modules.liquidity_swap.swap import Swap
 
 
 from modules.the_aptos_bridge.bridge import AptosBridge
@@ -21,6 +21,7 @@ from modules.the_aptos_bridge.claim import BridgedTokenClaimer
 from modules.abel_finance.mint_redeem import AbleFinance
 
 from modules.thala.liquidity import Thala
+from modules.liquidity_swap.liquidity import Liquidity as LSLiquidity
 
 from loguru import logger
 from aptos_sdk.account import Account
@@ -147,12 +148,26 @@ class ModuleExecutor:
             execution_status = remove_liq_status
 
         elif self.module_name == "liquidityswap_swap":
-            liq_swap = LiquiditySwap(base_url=base_url,
-                                     config=self.config,
-                                     proxies=proxy)
+            liq_swap = Swap(base_url=base_url,
+                            config=self.config,
+                            proxies=proxy)
 
             swap_status = liq_swap.make_swap(private_key=wallet_data.wallet)
             execution_status = swap_status
+
+        elif self.module_name == "liquidityswap_add_liquidity":
+            liq_swap = LSLiquidity(base_url=base_url,
+                                   config=self.config,
+                                   proxies=proxy)
+            add_liq_status = liq_swap.send_add_liquidity_transaction(private_key=wallet_data.wallet)
+            execution_status = add_liq_status
+
+        elif self.module_name == "liquidityswap_remove_liquidity":
+            liq_swap = LSLiquidity(base_url=base_url,
+                                      config=self.config,
+                                      proxies=proxy)
+            remove_liq_status = liq_swap.send_remove_liquidity_transaction(private_key=wallet_data.wallet)
+            execution_status = remove_liq_status
 
         return execution_status
 

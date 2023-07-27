@@ -235,7 +235,7 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.wait_for_transaction_checkbox.grid(row=12, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(200, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(250, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=14, column=0, padx=(20, 0), pady=(15, 0), sticky="w")

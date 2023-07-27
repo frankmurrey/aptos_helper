@@ -1,6 +1,8 @@
 import random
 import time
 
+from typing import Union
+
 from contracts.base import Token
 
 from aptos_rest_client import CustomRestClient
@@ -101,12 +103,21 @@ class AptosBase(CustomRestClient):
 
     def get_wallet_token_balance(self,
                                  wallet_address: AccountAddress,
-                                 token_obj: Token):
+                                 token_obj: Token = None,
+                                 token_contract=None):
+        if not token_obj and not token_contract:
+            logger.error("Please provide token_obj or token_contract")
+            return None
+
+        if token_obj:
+            token_contract = token_obj.contract
+        else:
+            token_contract = token_contract
 
         try:
             balance = self.account_resource(
                 wallet_address,
-                f"0x1::coin::CoinStore<{token_obj.contract}>",
+                f"0x1::coin::CoinStore<{token_contract}>",
             )
             return int(balance["data"]["coin"]["value"])
         except ResourceNotFound:
@@ -195,6 +206,25 @@ class AptosBase(CustomRestClient):
         )
         return raw_transaction
 
+    def get_token_reserve(self,
+                          coin_x: str,
+                          coin_y: str,
+                          resource_address,
+                          payload):
+        try:
+            data = self.account_resource(
+                resource_address,
+                payload
+            )
+            return data
+
+        except ResourceNotFound:
+            return None
+
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return False
+
     def simulate_and_send_transfer_type_transaction(self,
                                                     config,
                                                     sender_account: Account,
@@ -235,3 +265,4 @@ class AptosBase(CustomRestClient):
             elif txn_receipt is False:
                 logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
                 return False
+
