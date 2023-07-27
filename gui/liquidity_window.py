@@ -382,7 +382,7 @@ class Liquidity(customtkinter.CTk):
         swap_protocol = self.liquidity_protocol_combobox.get()
         if swap_protocol == "Liquid Swap":
             remove_liq_data = LiqSwRemoveLiquidityConfigSchema()
-        elif swap_protocol == "Liquid Swap":
+        elif swap_protocol == "Thala":
             remove_liq_data = ThalaRemoveLiquidityConfigSchema()
         else:
             messagebox.showerror("Error", "Protocol not selected")
