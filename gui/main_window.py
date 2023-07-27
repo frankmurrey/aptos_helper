@@ -5,7 +5,7 @@ from tkinter import messagebox, filedialog
 from gui.swaps_window import SwapsModule
 from gui.aptos_bridge_window import AptosBridgeModule
 from gui.abel_finance_window import AbleFinanceWindow
-from gui.thala_window import ThalaWindow
+from gui.liquidity_window import Liquidity
 
 from src.file_manager import FileManager
 from src.storage import WalletsStorage
@@ -24,7 +24,7 @@ class MainWindow(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Aptos helper by @frankmurrey")
-        self.geometry(f"{600}x{750}")
+        self.geometry(f"{600}x{800}")
 
         self.grid_columnconfigure(8, weight=1)
         self.grid_rowconfigure(3, weight=1)
@@ -46,28 +46,29 @@ class MainWindow(customtkinter.CTk):
                                                  text="Aptos Helper",
                                                  font=customtkinter.CTkFont(size=20, weight="bold"),
                                                  )
-        self.tabview = customtkinter.CTkTabview(self, width=350, height=700, bg_color="transparent")
+        self.tabview = customtkinter.CTkTabview(self, width=350, height=750, bg_color="transparent")
 
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-        self.sidebar_pancake_button = customtkinter.CTkButton(self.sidebar_frame,
-                                                              text="Swap",
-                                                              command=self.add_swaps_tabview)
+        self.sidebar_swap_button = customtkinter.CTkButton(self.sidebar_frame,
+                                                           text="Swap",
+                                                           command=self.add_swaps_tabview)
 
-        self.sidebar_pancake_button.grid(row=1, column=0, padx=20, pady=10)
+        self.sidebar_swap_button.grid(row=1, column=0, padx=20, pady=10)
+
+        self.sidebar_liquidity_button = customtkinter.CTkButton(self.sidebar_frame,
+                                                                text="Liquidity",
+                                                                command=self.add_liquidity_tabview)
+        self.sidebar_liquidity_button.grid(row=2, column=0, padx=20, pady=10)
+
         self.sidebar_aptos_bridge_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                    text="Aptos Bridge",
                                                                    command=self.add_aptos_bridge_tabview)
-        self.sidebar_aptos_bridge_button.grid(row=2, column=0, padx=20, pady=10)
+        self.sidebar_aptos_bridge_button.grid(row=3, column=0, padx=20, pady=10)
 
         self.sidebar_abel_finance_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                    text="Abel finance",
                                                                    command=self.add_abel_finance_tabview)
-        self.sidebar_abel_finance_button.grid(row=3, column=0, padx=20, pady=10)
-
-        self.sidebar_thala_button = customtkinter.CTkButton(self.sidebar_frame,
-                                                            text="Thala",
-                                                            command=self.add_thala_tabview)
-        self.sidebar_thala_button.grid(row=4, column=0, padx=20, pady=10)
+        self.sidebar_abel_finance_button.grid(row=4, column=0, padx=20, pady=10)
 
         self.wallets_loaded_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                            text="Wallets Loaded:",
@@ -153,14 +154,14 @@ class MainWindow(customtkinter.CTk):
         except Exception as e:
             pass
 
-    def add_thala_tabview(self):
+    def add_liquidity_tabview(self):
         try:
             self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
-            self.tabview.add("Thala")
-            self.tabview.tab("Thala").grid_columnconfigure(0, weight=3)
+            self.tabview.add("Liquidity")
+            self.tabview.tab("Liquidity").grid_columnconfigure(0, weight=3)
 
-            thala = ThalaWindow(tabview=self.tabview)
-            thala.add_all_fields()
+            liquidity = Liquidity(tabview=self.tabview)
+            liquidity.add_all_fields()
         except Exception as e:
             pass
 
