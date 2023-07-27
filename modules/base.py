@@ -207,8 +207,6 @@ class AptosBase(CustomRestClient):
         return raw_transaction
 
     def get_token_reserve(self,
-                          coin_x: str,
-                          coin_y: str,
                           resource_address,
                           payload):
         try:

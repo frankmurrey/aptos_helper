@@ -40,11 +40,11 @@ class SwapsModule(customtkinter.CTk):
 
         self.min_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                        width=140,
-                                                       placeholder_text="10")
+                                                       textvariable=StringVar(value=""))
 
         self.max_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                        width=140,
-                                                       placeholder_text="20")
+                                                       textvariable=StringVar(value=""))
 
         self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                                    text="Send all balance",

@@ -41,56 +41,44 @@ class PancakeSwap(AptosBase):
         coin_x = self.coin_to_swap.contract
         coin_y = self.coin_to_receive.contract
 
-        data = self.get_token_reserve(coin_x=coin_x, coin_y=coin_y)
+        data = self.get_token_reserve(resource_address=self.pancake_address,
+                                      payload=f"{self.pancake_address}::swap::TokenPairReserve"
+                                              f"<{coin_x}, {coin_y}>")
 
         if data is False:
             logger.error("Error getting token pair reserve")
             return None
 
         if data is not None:
-            reserve_x = data[coin_x]
-            reserve_y = data[coin_y]
+            reserve_x = data["data"]["reserve_x"]
+            reserve_y = data["data"]["reserve_y"]
 
-            return {coin_x: reserve_x, coin_y: reserve_y}
+            return {coin_x: reserve_x,
+                    coin_y: reserve_y}
         else:
             coin_x = self.coin_to_swap.contract
             coin_y = self.coin_to_receive.contract
 
-            reversed_data = self.get_token_reserve(coin_x=coin_y, coin_y=coin_x)
+            reversed_data = self.get_token_reserve(resource_address=self.pancake_address,
+                                                   payload=f"{self.pancake_address}::swap::TokenPairReserve"
+                                                           f"<{coin_y}, {coin_x}>")
+            reserve_x = reversed_data["data"]["reserve_x"]
+            reserve_y = reversed_data["data"]["reserve_y"]
 
-            reserve_x = reversed_data[coin_y]
-            reserve_y = reversed_data[coin_x]
-
-            return {coin_x: reserve_x, coin_y: reserve_y}
-
-    def get_token_reserve(self, coin_x: str, coin_y: str) -> Union[dict, None, bool]:
-        try:
-            data = self.account_resource(
-                self.pancake_address,
-                f"{self.pancake_address}::swap::TokenPairReserve"
-                f"<{coin_x}, {coin_y}>"
-            )
-
-            return {coin_x: data["data"]["reserve_x"], coin_y: data["data"]["reserve_y"]}
-        except ResourceNotFound:
-            return None
-
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            return False
+            return {coin_x: reserve_y, coin_y: reserve_x}
 
     def get_amount_in(self, amount_out: int):
         tokens_reserve: dict = self.get_token_pair_reserve()
         if tokens_reserve is None:
             return None
 
-        reserve_x = tokens_reserve[self.coin_to_swap.contract]
-        reserve_y = tokens_reserve[self.coin_to_receive.contract]
+        reserve_x = int(tokens_reserve[self.coin_to_swap.contract])
+        reserve_y = int(tokens_reserve[self.coin_to_receive.contract])
 
         if reserve_x is None or reserve_y is None:
             return None
 
-        amount_in_with_fee = amount_out * 9975
+        amount_in_with_fee = amount_out * 10000
 
         numerator = amount_in_with_fee * int(reserve_y)
         denominator = int(reserve_x) * 10000 + amount_in_with_fee
@@ -128,7 +116,6 @@ class PancakeSwap(AptosBase):
 
         slippage = self.config.slippage
         amount_in = int(self.get_amount_in(amount_out=amount_out) * (1 - (slippage / 100)))
-
         if amount_in is None:
             return None
 
@@ -165,7 +152,6 @@ class PancakeSwap(AptosBase):
 
         if txn_payload is None:
             return False
-
         raw_transaction = self.build_raw_transaction(
             sender_account=sender_account,
             payload=txn_payload,
