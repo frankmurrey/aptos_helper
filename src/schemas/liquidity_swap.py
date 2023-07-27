@@ -16,7 +16,7 @@ class LiqSwAddLiquidityConfigSchema(TransferBase):
     coin_x: Union[str, None] = ""
     coin_y: Union[str, None] = ""
     send_all_balance: Union[bool, str] = False
-    slippage: Union[int, float, str] = 0
+    slippage: Union[int, float, str] = 0.5
 
 
 class LiqSwRemoveLiquidityConfigSchema(TransferBase):
@@ -24,3 +24,4 @@ class LiqSwRemoveLiquidityConfigSchema(TransferBase):
     coin_x: str = ""
     coin_y: str = ""
     send_all_balance: Union[bool, str] = True
+    slippage: Union[int, float, str] = 0.5
