@@ -52,7 +52,8 @@ class AptosBridgeModule(customtkinter.CTk):
                                                                    command=self.send_all_balance_checkbox_event)
 
         self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
-                                                      width=70)
+                                                      width=70,
+                                                      textvariable=StringVar(value="100"))
 
         self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=70)
@@ -373,7 +374,7 @@ class AptosBridgeModule(customtkinter.CTk):
         self.bridge_data.gas_limit = int(self.gas_limit_entry.get() if self.bridge_data.gas_limit.strip(" ") != "" else "")
         self.bridge_data.min_delay_sec = float(self.min_delay_entry.get() if self.bridge_data.min_delay_sec.strip(" ") != "" else "")
         self.bridge_data.max_delay_sec = float(self.max_delay_entry.get() if self.bridge_data.max_delay_sec.strip(" ") != "" else "")
-        self.bridge_data.wait_for_receipt = self.transaction_wait_time_entry.get()
+        self.bridge_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
         self.bridge_data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get() if self.bridge_data.wait_for_receipt else 0)
         self.bridge_data.test_mode = self.test_mode_checkbox.get()
 

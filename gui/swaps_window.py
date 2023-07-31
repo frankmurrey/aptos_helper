@@ -26,6 +26,7 @@ class SwapsModule(customtkinter.CTk):
         self._tab_name = "Swap"
         self.data = None
         self.wallets_storage = WalletsStorage()
+        self.protocol_name = None
 
         self.swap_protocol_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
                                                                 values=self.swap_protocol_options,
@@ -59,7 +60,8 @@ class SwapsModule(customtkinter.CTk):
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
         self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
-                                                      width=70)
+                                                      width=70,
+                                                      textvariable=StringVar(value="100"))
 
         self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=70)
@@ -325,6 +327,9 @@ class SwapsModule(customtkinter.CTk):
         return self.data
 
     def update_all_fields(self):
+        if self.protocol_name:
+            self.swap_protocol_combobox.set(self.protocol_name)
+
         self.coin_to_swap_combobox.set(self.data.coin_to_swap)
         self.coin_to_receive_combobox.set(self.data.coin_to_receive)
 
@@ -419,7 +424,6 @@ class SwapsModule(customtkinter.CTk):
             yaml.dump(config_dict, file)
 
     def load_config_event(self):
-        swap_protocol = self.swap_protocol_combobox.get()
 
         file_path = filedialog.askopenfilename(initialdir=".",
                                                title="Select config",
@@ -430,22 +434,19 @@ class SwapsModule(customtkinter.CTk):
         with open(file_path, "r") as file:
             config_dict = yaml.load(file, Loader=yaml.FullLoader)
         try:
-            if swap_protocol == "Pancake":
+            if config_dict.get("module_name") == "pancake":
                 config = PancakeConfigSchema(**config_dict)
-                if config.module_name != "pancake":
-                    messagebox.showerror("Error", f"Wrong config file selected, current module is <pancake>,"
-                                                  f" selected module is <{config.module_name}>")
-                    return
-            elif swap_protocol == "Liquid Swap":
+                swap_protocol = "Pancake"
+
+            elif config_dict.get("module_name") == "liquidityswap_swap":
                 config = LiqSwSwapConfigSchema(**config_dict)
-                if config.module_name != "liquidityswap_swap":
-                    messagebox.showerror("Error", f"Wrong config file selected, current module is <liquidity_swap>,"
-                                                  f" selected module is <{config.module_name}>")
-                    return
+                swap_protocol = "Liquid Swap"
+
             else:
                 messagebox.showerror("Error", "Swap protocol not selected")
                 return
 
+            self.protocol_name = swap_protocol
             self.data = config
             self.update_all_fields()
         except Exception as e:

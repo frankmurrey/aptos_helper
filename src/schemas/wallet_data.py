@@ -13,5 +13,5 @@ class ProxyData(BaseModel):
 
 class WalletData(BaseModel):
     wallet: str
-    proxy: ProxyData = None
+    proxy: Union[ProxyData, None] = None
     evm_pair_address: Union[str, None] = None

@@ -156,13 +156,14 @@ def get_optimal_liquidity_amount(x_desired: Decimal,
 
 if __name__ == '__main__':
     out_ = get_coins_out_with_fees_stable(
-        coin_in=Decimal(250000000),
-        reserve_in=Decimal(1899881601400),
-        reserve_out=Decimal(2331737707748),
+        coin_in=Decimal(337000000),
+        reserve_in=Decimal(2332323707748),
+        reserve_out=Decimal(1903323601400),
         scale_in=Decimal(1000000),
         scale_out=Decimal(1000000),
         fee=d(4)
     )
+    print(out_)
     liq_ = get_optimal_liquidity_amount(
         x_desired=Decimal(180000000),
         x_reserve=Decimal(1899881601400),

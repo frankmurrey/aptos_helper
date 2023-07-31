@@ -91,7 +91,7 @@ class PancakeSwap(AptosBase):
         wallet_token_balance = self.get_wallet_token_balance(wallet_address=sender_account.address(),
                                                              token_obj=self.coin_to_swap)
         if wallet_token_balance == 0:
-            logger.error(f"Wallet balance is 0 {self.coin_to_swap.symbol}")
+            logger.error(f"Wallet balance is 0 {self.coin_to_swap.symbol.upper()}")
             return None
 
         wallet_token_balance_decimals = wallet_token_balance * 10 ** self.get_token_decimals(
@@ -146,22 +146,11 @@ class PancakeSwap(AptosBase):
         return payload
 
     def make_swap(self, private_key: str) -> bool:
-
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_transaction_payload(sender_account=sender_account)
 
         if txn_payload is None:
             return False
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
 
         txn_info_message = f"Swap (Pancake) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
@@ -170,7 +159,7 @@ class PancakeSwap(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
-            txn_info_message=txn_info_message)
+            txn_info_message=txn_info_message
+        )
 
         return txn_status

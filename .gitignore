@@ -1,5 +1,6 @@
 wallets.txt
 evm_addresses.txt
+proxy.txt
 shius.txt
 .idea
 *__pycache__*

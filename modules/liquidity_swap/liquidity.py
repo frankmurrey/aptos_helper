@@ -189,20 +189,9 @@ class Liquidity(AptosBase):
         if txn_payload is None:
             return False
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
         txn_info_message = (
-            f"Add liquidity (Liquid Swap) - " 
-            f"{round(self.amount_out_x_decimals, 4)} ({self.coin_x.name}) + " 
+            f"Add liquidity (Liquid Swap) - "
+            f"{round(self.amount_out_x_decimals, 4)} ({self.coin_x.name}) + "
             f"{round(self.amount_out_y_decimals, 4)} ({self.coin_y.name})."
         )
 
@@ -210,8 +199,8 @@ class Liquidity(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
-            txn_info_message=txn_info_message)
+            txn_info_message=txn_info_message
+        )
 
         return txn_status
 
@@ -266,17 +255,6 @@ class Liquidity(AptosBase):
         if txn_payload is None:
             return False
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
         txn_info_message = f"Remove liquidity (Liquidity Swap): " \
                            f"({round(self.amount_out_x_decimals, 4)} {self.coin_x.symbol.upper()} / " \
                            f"{round(self.amount_out_y_decimals, 4)} {self.coin_y.symbol.upper()})"
@@ -285,7 +263,6 @@ class Liquidity(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 

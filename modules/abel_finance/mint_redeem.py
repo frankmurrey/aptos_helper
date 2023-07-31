@@ -7,7 +7,7 @@ from aptos_sdk.type_tag import (TypeTag,
                                 StructTag)
 from aptos_sdk.account import (Account,
                                AccountAddress)
-from aptos_rest_client.client import ClientConfig
+from aptos_rest_client.client import ResourceNotFound
 
 from loguru import logger
 
@@ -36,14 +36,17 @@ class AbleFinance(AptosBase):
     def get_max_redeem_amount(self,
                               coin_contract: str,
                               account_address: AccountAddress):
-        resource_type = f"{self.store_address}<{coin_contract}>"
+        try:
+            resource_type = f"{self.store_address}<{coin_contract}>"
 
-        data = self.account_resource(
-            account_address,
-            resource_type
-        )
+            data = self.account_resource(
+                account_address,
+                resource_type
+            )
 
-        return data.get('data').get('coin').get('value')
+            return data.get('data').get('coin').get('value')
+        except ResourceNotFound:
+            return None
 
     def build_redeem_transaction_payload(self, sender_account: Account):
         max_redeem_amount = self.get_max_redeem_amount(
@@ -51,7 +54,11 @@ class AbleFinance(AptosBase):
             account_address=sender_account.address()
         )
         if max_redeem_amount is None:
-            logger.error("Error while getting max redeem amount")
+            logger.error("LP not found on wallet balance")
+            return
+
+        if int(max_redeem_amount) == 0:
+            logger.error("Nothing to redeem (claim)")
             return
 
         max_redeem_amount = int(max_redeem_amount)
@@ -62,7 +69,6 @@ class AbleFinance(AptosBase):
 
         if self.config.redeem_all is True:
             amount_out = max_redeem_amount
-
         else:
             amount_out = self.get_random_amount_out(
                 min_amount=self.config.min_amount_out,
@@ -87,32 +93,18 @@ class AbleFinance(AptosBase):
         return payload
 
     def send_redeem_transaction(self, private_key: str):
-
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_redeem_transaction_payload(sender_account=sender_account)
 
         if txn_payload is None:
-            logger.error(f"Error building add liquidity transaction payload")
             return False
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit * 1.2)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
-        txn_info_message = f"Redeem {self.amount_out_decimals} {self.coin_option.symbol.upper()}"
+        txn_info_message = f"Redeem/Claim (Abel finance) {self.amount_out_decimals} {self.coin_option.symbol.upper()}"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 
@@ -171,24 +163,12 @@ class AbleFinance(AptosBase):
         if txn_payload is None:
             return False
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
-        txn_info_message = f"Mint (Lend) {self.amount_out_decimals} {self.coin_option.symbol.upper()}"
+        txn_info_message = f"Mint/Lend (Abel finance) {self.amount_out_decimals} {self.coin_option.symbol.upper()}"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 

@@ -69,7 +69,7 @@ class Swap(AptosBase):
             coin_y = self.coin_to_receive.contract
 
             res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
-                          f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::Uncorrelated>"
+                          f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::Stable>"
 
             reversed_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                    payload=res_payload)
@@ -81,7 +81,7 @@ class Swap(AptosBase):
             reserve_x = reversed_data["data"]["coin_x_reserve"]["value"]
             reserve_y = reversed_data["data"]["coin_y_reserve"]["value"]
 
-            return {coin_x: reserve_x, coin_y: reserve_y}
+            return {coin_x: reserve_y, coin_y: reserve_x}
 
     def get_amount_in(self, amount_out: int):
         tokens_reserve: dict = self.get_token_pair_reserve()
@@ -165,23 +165,11 @@ class Swap(AptosBase):
         return payload
 
     def make_swap(self, private_key: str) -> bool:
-
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_transaction_payload(sender_account=sender_account)
 
         if txn_payload is None:
             return False
-
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
 
         txn_info_message = f"Swap (Liquid Swap) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
@@ -190,8 +178,9 @@ class Swap(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
-            txn_info_message=txn_info_message)
+            txn_info_message=txn_info_message
+        )
 
         return txn_status
+
 

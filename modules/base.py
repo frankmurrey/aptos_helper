@@ -6,7 +6,8 @@ from typing import Union
 from contracts.base import Token
 
 from aptos_rest_client import CustomRestClient
-from aptos_rest_client.client import ResourceNotFound
+from aptos_rest_client.client import (ResourceNotFound,
+                                      ClientConfig)
 
 from aptos_sdk.account import (Account,
                                AccountAddress)
@@ -159,9 +160,9 @@ class AptosBase(CustomRestClient):
         vm_status = txn_data[0]["vm_status"]
 
         if txn_data[0]["success"] is True:
-            return True
+            return True, txn_data[0]["gas_used"]
         else:
-            return vm_status
+            return False, vm_status
 
     def txn_pending_status(self,
                            txn_hash: str):
@@ -223,26 +224,50 @@ class AptosBase(CustomRestClient):
             logger.error(f"Error: {e}")
             return False
 
+    def prebuild_payload_and_estimate_transaction(self,
+                                                  txn_payload,
+                                                  sender_account,
+                                                  gas_limit,
+                                                  gas_price):
+        raw_transaction = self.build_raw_transaction(sender_account=sender_account,
+                                                     payload=txn_payload,
+                                                     gas_limit=gas_limit,
+                                                     gas_price=gas_price)
+        ClientConfig.max_gas_amount = int(gas_limit)
+
+        simulate_txn: tuple = self.estimate_transaction(raw_transaction=raw_transaction,
+                                                        sender_account=sender_account)
+
+        is_simulation_success = simulate_txn[0]
+        simulation_status_data = simulate_txn[1]
+
+        if is_simulation_success is not True:
+            logger.error(f"Transaction simulation failed. Status: {simulation_status_data}")
+            return None
+        else:
+            logger.success(f"Transaction simulation success, gas used: {simulation_status_data}")
+            return simulation_status_data
+
     def simulate_and_send_transfer_type_transaction(self,
                                                     config,
                                                     sender_account: Account,
                                                     txn_payload: EntryFunction,
-                                                    simulation_status: bool,
                                                     txn_info_message: str
                                                     ):
-        if simulation_status is not True:
-            if simulation_status is False:
-                logger.error(f"Can't simulate transaction:"
-                             f" {txn_info_message}")
-                return False
-            else:
-                logger.error(f"Transaction simulation failed. Status: {simulation_status}")
-                return False
-        else:
-            logger.success(f"Transaction simulation success:"
-                           f" {txn_info_message}")
+        simulated_raw_transaction_gas_estimate = self.prebuild_payload_and_estimate_transaction(
+            sender_account=sender_account,
+            txn_payload=txn_payload,
+            gas_limit=int(config.gas_limit),
+            gas_price=int(config.gas_price)
+        )
+
+        if simulated_raw_transaction_gas_estimate is None:
+            return False
+
+        ClientConfig.max_gas_amount = int(int(simulated_raw_transaction_gas_estimate) * 1.1)
 
         if config.test_mode is True:
+            logger.debug(f"Test mode enabled. Skipping transaction: {txn_info_message}")
             return False
 
         signed_transaction = self.create_bcs_signed_transaction(sender=sender_account,
@@ -263,4 +288,10 @@ class AptosBase(CustomRestClient):
             elif txn_receipt is False:
                 logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
                 return False
+        else:
+            logger.success(f"Transaction sent:"
+                           f" {txn_info_message}"
+                           f" Txn Hash: {tx_hash}")
+            return True
+
 
