@@ -12,16 +12,33 @@ from pydantic import BaseModel
 from loguru import logger
 
 
+def convert_to_title_case(input_str):
+    words = input_str.split('_')
+    title_case_words = [word.capitalize() for word in words]
+    return ' '.join(title_case_words)
+
+
 def print_config(config):
-    delay_seconds = 2
+    delay_seconds = 5
 
     logger.remove()
     logger.add(stderr,
                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{line: <3}</cyan>"
                       " - <level>{message}</level>")
     logger.info(f'Config:')
+    logger.warning(f"MODULE: {config.module_name}")
+
+    if config.test_mode is False:
+        logger.critical(f"TEST MODE: {config.test_mode}")
+    else:
+        logger.success(f"TEST MODE: {config.test_mode}")
+
     for key, value in config.__dict__.items():
-        logger.warning(f'{key}: {value}')
+        if key == 'module_name' or key == 'test_mode':
+            continue
+
+        converted_key = convert_to_title_case(key)
+        logger.warning(f'{converted_key}: {value}')
 
     logger.info(f"Starting in ({delay_seconds}) seconds")
     logger.info("Press 'Ctrl+C' to stop the process\n")
