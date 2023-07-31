@@ -128,17 +128,21 @@ class Thala(AptosBase):
         return lp_ratio
 
     def get_pools_data(self) -> Union[dict, None]:
-        request_url = "https://app.thala.fi/api/liquidity-pools"
-        response = self.client.get(url=request_url)
-        if response.status_code > 304 or not response.json():
+        try:
+            request_url = "https://app.thala.fi/api/liquidity-pools"
+            response = self.client.get(url=request_url)
+            if response.status_code > 304 or not response.json():
+                return None
+
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error while getting pools data: {e}")
             return None
 
-        return response.json()
-
     def get_pool_for_token_pair(self):
-        pools_data = self.pools_data.get('data')
-        if not pools_data:
+        if not self.pools_data:
             return
+        pools_data = self.pools_data.get('data')
 
         try:
             all_pool_types = []
@@ -249,24 +253,11 @@ class Thala(AptosBase):
             return None
 
     def send_add_liquidity_transaction(self, private_key: str):
-
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_add_liquidity_transaction_payload(sender_account=sender_account)
 
         if txn_payload is None:
-            logger.error(f"Error building add liquidity transaction payload")
             return False
-
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit * 1.2)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
 
         txn_info_message = f"Add liquidity (Thala): ({self.amount_out_x_decimals} {self.coin_x.symbol.upper()}-" \
                            f"{self.amount_out_y_decimals} {self.coin_y.symbol.upper()})"
@@ -275,7 +266,6 @@ class Thala(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 
@@ -396,28 +386,17 @@ class Thala(AptosBase):
         if txn_payload is None:
             return False
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
         txn_info_message = f"Remove liquidity (Thala): ({self.coin_x.symbol.upper()}-{self.coin_y.symbol.upper()})"
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 
         return txn_status
+
 
     def build_stake_lp_transaction_payload(self,
                                            sender_account: Account,
@@ -471,22 +450,10 @@ class Thala(AptosBase):
     def send_stake_lp_transaction(self,
                                   private_key: str):
         sender_account = self.get_account(private_key=private_key)
-        txn_payload = self.build_stake_lp_transaction_payload(sender_account=sender_account,
-                                                              pool_id=self.default_lp_stake_pool_id)
+        txn_payload = self.build_stake_lp_transaction_payload(sender_account=sender_account)
 
         if txn_payload is None:
             return False
-
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-        ClientConfig.max_gas_amount = int(self.config.gas_limit)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
 
         txn_info_message = f"LP stake of pair: {self.coin_x.symbol.upper()}/{self.coin_y.symbol.upper()}"
 
@@ -494,7 +461,6 @@ class Thala(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
         )
 
