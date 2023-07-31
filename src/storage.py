@@ -9,7 +9,7 @@ class WalletsStorage:
         DEFAULT_RPC_URL = '"https://rpc.ankr.com/http/aptos/v1"'
 
         def __init__(self):
-            self.__wallets_data = FileManager().get_wallets()
+            self.__wallets_data = FileManager().get_wallets_from_files()
             self.__shuffle_wallets = False
 
             __rpc_url_from_file = FileManager().read_data_from_json_file(TempFiles().RPC_URLS_JSON_FILE)
