@@ -149,29 +149,12 @@ class AptosBridge(AptosBase):
     def send_transaction(self,
                          private_key: str,
                          receiver_address: str):
-
-        if receiver_address is None:
-            logger.error("Receiver address is not provided")
-            return
-
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_transaction_payload(sender_account=sender_account,
                                                      receiver_address=receiver_address)
-        if not txn_payload:
-            return
 
-        raw_transaction = self.build_raw_transaction(
-            sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
-        )
-
-        ClientConfig.max_gas_amount = int(self.config.gas_limit * 1.2)
-        # By default, client config max_gas_amount is too high (100_000)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
+        if txn_payload is None:
+            return False
 
         txn_info_message = f"{self.amount_out_decimals} {self.config.coin_to_bridge.upper()}" \
                            f" bridge to {self.config.dst_chain_name.upper()}, receiver: {receiver_address}."
@@ -180,8 +163,7 @@ class AptosBridge(AptosBase):
             config=self.config,
             sender_account=sender_account,
             txn_payload=txn_payload,
-            simulation_status=simulate_txn,
             txn_info_message=txn_info_message
-
         )
+
         return txn_status
