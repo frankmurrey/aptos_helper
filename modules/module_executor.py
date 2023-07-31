@@ -14,7 +14,6 @@ from src.templates.templates import Templates
 from modules.pancake.swap import PancakeSwap
 from modules.liquidity_swap.swap import Swap
 
-
 from modules.the_aptos_bridge.bridge import AptosBridge
 from modules.the_aptos_bridge.claim import BridgedTokenClaimer
 
