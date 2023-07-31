@@ -56,7 +56,8 @@ class AbleFinanceWindow(customtkinter.CTk):
                                                                    command=self.send_all_balance_checkbox_event)
 
         self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
-                                                      width=70)
+                                                      width=70,
+                                                      textvariable=StringVar(value="100"))
 
         self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
                                                       width=70)
@@ -226,7 +227,7 @@ class AbleFinanceWindow(customtkinter.CTk):
         transaction_wait_time_label.grid(row=10, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
         claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                    text="*",
-                                                   text_color="#ADD8E6",
+                                                   text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
         claim_button_mark.grid(row=10, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
         self.transaction_wait_time_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
@@ -288,8 +289,10 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.redeem_data.gas_price = self.gas_price_entry.get()
         self.redeem_data.gas_limit = self.gas_limit_entry.get()
         self.redeem_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.mint_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
-        self.mint_data.test_mode = self.test_mode_checkbox.get()
+        self.redeem_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
+        self.redeem_data.test_mode = self.test_mode_checkbox.get()
+        self.redeem_data.min_delay_sec = self.min_delay_entry.get()
+        self.redeem_data.max_delay_sec = self.max_delay_entry.get()
 
         return self.redeem_data
 
@@ -314,6 +317,8 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.redeem_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
         self.redeem_data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get() if self.mint_data.wait_for_receipt else 0)
         self.redeem_data.test_mode = self.test_mode_checkbox.get()
+        self.redeem_data.min_delay_sec = int(self.min_delay_entry.get())
+        self.redeem_data.max_delay_sec = int(self.max_delay_entry.get())
 
         return self.redeem_data
 
