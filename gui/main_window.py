@@ -29,14 +29,16 @@ class MainWindow(customtkinter.CTk):
         self.grid_columnconfigure(8, weight=1)
         self.grid_rowconfigure(3, weight=1)
 
-        self.wallets_data = FileManager().get_wallets()
         self.wallets_storage = WalletsStorage()
+        self.wallets_data = self.wallets_storage.get_wallets_data()
 
         if self.wallets_data is None:
             self.aptos_wallets_data = []
             self.evm_addresses_data = []
+            self.proxy_data = []
         else:
             self.aptos_wallets_data = [wallet.wallet for wallet in self.wallets_data if wallet.wallet]
+            self.proxy_data = [wallet.proxy for wallet in self.wallets_data if wallet.proxy]
             self.evm_addresses_data = [wallet.evm_pair_address for wallet in self.wallets_data if wallet.evm_pair_address]
 
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
@@ -76,6 +78,10 @@ class MainWindow(customtkinter.CTk):
                                                            font=customtkinter.CTkFont(size=16, weight="bold"))
         self.wallets_loaded_label.grid(row=6, column=0, padx=20, pady=(0, 0))
 
+        self.aptos_wallets_loaded_label = customtkinter.CTkLabel(self.sidebar_frame,
+                                                                    text=f"Aptos: {len(self.aptos_wallets_data)}",
+                                                                    anchor="w")
+
         self.load_aptos_wallets_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                  text="+",
                                                                  width=25,
@@ -85,11 +91,17 @@ class MainWindow(customtkinter.CTk):
         self.load_aptos_wallets_button.grid(row=6, column=0, padx=(0, 118), pady=(70, 0))
 
         self.aptos_wallet_load_label = customtkinter.CTkLabel(self.sidebar_frame,
-                                                              text=f"Aptos: {self.amount_of_loaded_aptos_wallets}",
-                                                              anchor="e",
+                                                              text=f"Aptos: ",
+                                                              anchor="w",
                                                               bg_color="transparent",
                                                               font=customtkinter.CTkFont(size=14, weight="bold"))
         self.aptos_wallet_load_label.grid(row=6, column=0, padx=(0, 15), pady=(70, 0))
+        self.aptos_loaded_wallet_num_label = customtkinter.CTkLabel(self.sidebar_frame,
+                                                                    text=f"{len(self.aptos_wallets_data)}",
+                                                                    justify="right",
+                                                                    bg_color="transparent",
+                                                                    font=customtkinter.CTkFont(size=14, weight="bold"))
+        self.aptos_loaded_wallet_num_label.grid(row=6, column=0, padx=(70, 0), pady=(70, 0))
 
         self.load_evm_addresses_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                  text="+",
@@ -100,11 +112,40 @@ class MainWindow(customtkinter.CTk):
         self.load_evm_addresses_button.grid(row=6, column=0, padx=(0, 118), pady=(140, 0))
 
         self.evm_addresses_load_label = customtkinter.CTkLabel(self.sidebar_frame,
-                                                               text=f"EVM: {self.amount_of_loaded_evm_addresses}",
+                                                               text=f"EVM: ",
                                                                anchor="e",
                                                                bg_color="transparent",
                                                                font=customtkinter.CTkFont(size=14, weight="bold"))
         self.evm_addresses_load_label.grid(row=6, column=0, padx=(0, 25), pady=(140, 0))
+        self.evm_addresses_loaded_num_label = customtkinter.CTkLabel(self.sidebar_frame,
+                                                                     text=f"{len(self.evm_addresses_data)}",
+                                                                     anchor="e",
+                                                                     bg_color="transparent",
+                                                                     font=customtkinter.CTkFont(size=14, weight="bold"))
+        self.evm_addresses_loaded_num_label.grid(row=6, column=0, padx=(70, 0), pady=(140, 0))
+
+        self.load_proxy_button = customtkinter.CTkButton(self.sidebar_frame,
+                                                         text="+",
+                                                         width=25,
+                                                         height=25,
+                                                         anchor="c",
+                                                         command=self.load_proxy_from_file)
+
+        self.load_proxy_button.grid(row=6, column=0, padx=(0, 118), pady=(210, 0))
+
+        self.proxy_load_label = customtkinter.CTkLabel(self.sidebar_frame,
+                                                       text=f"Proxy: ",
+                                                       anchor="e",
+                                                       bg_color="transparent",
+                                                       font=customtkinter.CTkFont(size=14, weight="bold"))
+        self.proxy_load_label.grid(row=6, column=0, padx=(0, 18), pady=(210, 0))
+        self.proxy_loaded_num_label = customtkinter.CTkLabel(self.sidebar_frame,
+                                                             text=f"{len(self.proxy_data)}",
+                                                             anchor="e",
+                                                             bg_color="transparent",
+                                                             font=customtkinter.CTkFont(size=14, weight="bold"))
+        self.proxy_loaded_num_label.grid(row=6, column=0, padx=(70, 0), pady=(210, 0))
+
         self.shuffle_wallets_switch = customtkinter.CTkSwitch(self.sidebar_frame,
                                                               text="Shuffle wallets",
                                                               font=customtkinter.CTkFont(size=12, weight="bold"),
@@ -112,7 +153,7 @@ class MainWindow(customtkinter.CTk):
                                                               onvalue=True,
                                                               offvalue=False,
                                                               command=self.shuffle_wallets_event)
-        self.shuffle_wallets_switch.grid(row=6, column=0, padx=(0, 10), pady=(200, 0))
+        self.shuffle_wallets_switch.grid(row=6, column=0, padx=(0, 10), pady=(270, 0))
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
         self.appearance_mode_label.grid(row=8, column=0, padx=20, pady=(0, 55))
@@ -181,7 +222,7 @@ class MainWindow(customtkinter.CTk):
         if not self.wallets_data:
             return 0
 
-        aptos_wallets = [wallet.wallet for wallet in self.wallets_data if len(wallet.wallet) == 66]
+        aptos_wallets = [wallet.wallet for wallet in self.wallets_data]
         return len(aptos_wallets)
 
     @property
@@ -194,14 +235,27 @@ class MainWindow(customtkinter.CTk):
             if wallet_data.evm_pair_address is None:
                 continue
 
-            if len(wallet_data.evm_pair_address) == 42:
-                evm_addresses.append(wallet_data.evm_pair_address)
+            evm_addresses.append(wallet_data.evm_pair_address)
 
         return len(evm_addresses)
 
+    @property
+    def amount_of_loaded_proxy(self):
+        if not self.wallets_data:
+            return 0
+
+        proxy = []
+        for wallet_data in self.wallets_data:
+            if wallet_data.proxy is None:
+                continue
+            proxy.append(wallet_data.proxy)
+
+        return len(proxy)
+
     def update_wallets_loaded_label(self):
-        self.aptos_wallet_load_label.configure(text=f"Aptos: {self.amount_of_loaded_aptos_wallets}")
-        self.evm_addresses_load_label.configure(text=f"EVM: {self.amount_of_loaded_evm_addresses}")
+        self.aptos_loaded_wallet_num_label.configure(text=f"{self.amount_of_loaded_aptos_wallets}")
+        self.evm_addresses_loaded_num_label.configure(text=f"{self.amount_of_loaded_evm_addresses}")
+        self.proxy_loaded_num_label.configure(text=f"{self.amount_of_loaded_proxy}")
 
     def load_wallets_from_storage(self):
         self.aptos_wallets_data = [wallet.wallet for wallet in self.wallets_data if wallet.wallet]
@@ -210,15 +264,16 @@ class MainWindow(customtkinter.CTk):
 
     def load_aptos_wallets_from_file(self):
         file_path = filedialog.askopenfilename(initialdir=".",
-                                               title="Select wallet file",
+                                               title="Select aptos wallets file",
                                                filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
 
-        if file_path == "":
+        if not file_path:
             return
+
         try:
             data = FileManager().read_data_from_txt_file(file_path)
             self.aptos_wallets_data = data
-            self.wallets_data = FileManager().get_wallets(aptos_wallets_file_data=data)
+            self.wallets_data = FileManager().get_wallets(aptos_wallets_data=data)
             self.wallets_storage.set_wallets_data(self.wallets_data)
             self.update_wallets_loaded_label()
 
@@ -231,18 +286,43 @@ class MainWindow(customtkinter.CTk):
             return
 
         file_path = filedialog.askopenfilename(initialdir=".",
-                                               title="Select wallet file",
+                                               title="Select evm addresses file",
                                                filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
 
-        if file_path == "":
+        if not file_path:
             return
 
         try:
             data = FileManager().read_data_from_txt_file(file_path)
             self.evm_addresses_data = data
-            self.wallets_data = FileManager().get_wallets(evm_addresses_file_data=data,
-                                                          aptos_wallets_file_data=self.aptos_wallets_data)
+            self.wallets_data = FileManager().get_wallets(aptos_wallets_data=self.aptos_wallets_data,
+                                                          evm_addresses_data=data)
             self.wallets_storage.set_wallets_data(self.wallets_data)
             self.update_wallets_loaded_label()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Wrong data format in file: {e}")
+
+    def load_proxy_from_file(self):
+        if not self.aptos_wallets_data:
+            messagebox.showerror("Error", "Load aptos wallets first")
+            return
+
+        file_path = filedialog.askopenfilename(initialdir=".",
+                                               title="Select proxy file",
+                                               filetypes=(("Text files", "*.txt"), ("all files", "*.*")))
+
+        if not file_path:
+            return
+
+        try:
+            data = FileManager().read_data_from_txt_file(file_path)
+            self.proxy_data = data
+            self.wallets_data = FileManager().get_wallets(aptos_wallets_data=self.aptos_wallets_data,
+                                                          evm_addresses_data=self.evm_addresses_data,
+                                                          proxy_data=data)
+            self.wallets_storage.set_wallets_data(self.wallets_data)
+            self.update_wallets_loaded_label()
+
         except Exception as e:
             messagebox.showerror("Error", f"Wrong data format in file: {e}")
