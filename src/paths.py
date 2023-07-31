@@ -8,6 +8,7 @@ CONFIG_DIR = os.path.join(MAIN_DIR, "config")
 
 APTOS_WALLETS_FILE = os.path.join(MAIN_DIR, "wallets.txt")
 EVM_ADDRESSES_FILE = os.path.join(MAIN_DIR, "evm_addresses.txt")
+PROXY_FILE = os.path.join(MAIN_DIR, "proxy.txt")
 
 
 class TempFiles:
