@@ -73,54 +73,15 @@ class BridgedTokenClaimer(AptosBase):
         if not txn_payload:
             return False
 
-        raw_transaction = self.build_raw_transaction(
+        txn_info_message = f"Claim bridged {token_contract.name}."
+
+        txn_status = self.simulate_and_send_transfer_type_transaction(
+            config=self.config,
             sender_account=sender_account,
-            payload=txn_payload,
-            gas_limit=int(self.config.gas_limit),
-            gas_price=int(self.config.gas_price)
+            txn_payload=txn_payload,
+            txn_info_message=txn_info_message
         )
-        ClientConfig.max_gas_amount = int(int(self.config.gas_limit) * 1.2)
-
-        simulate_txn = self.estimate_transaction(raw_transaction=raw_transaction,
-                                                 sender_account=sender_account)
-
-        if simulate_txn is not True:
-            if simulate_txn is False:
-                logger.error(f"Can't simulate transaction: claim {token_contract.name}")
-                return False
-            else:
-                logger.error(f"Transaction simulation failed. Status: {simulate_txn}")
-                return False
-        else:
-            logger.success(f"Transaction simulation success: claim {token_contract.name}")
-
-        if self.config.test_mode is True:
-            return False
-
-        signed_transaction = self.create_bcs_signed_transaction(sender=sender_account,
-                                                                payload=TransactionPayload(txn_payload))
-        tx_hash = self.submit_bcs_transaction(signed_transaction)
-
-        if self.config.wait_for_receipt is True:
-            logger.debug(f"Txn sent. Waiting for receipt (Timeout in {self.config.txn_wait_timeout_sec}s)."
-                         f" Txn Hash: {tx_hash}")
-            txn_receipt = self.wait_for_receipt(txn_hash=tx_hash,
-                                                timeout=self.config.txn_wait_timeout_sec)
-
-            if txn_receipt is True:
-                logger.success(f"Transaction success: claim {token_contract.name}"
-                               f" Txn Hash: {tx_hash}")
-                return True
-            elif txn_receipt is False:
-                logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
-                return False
-            elif txn_receipt is None:
-                logger.error(f"Time out {self.config.txn_wait_timeout_sec},"
-                             f" txn not included in blockchain. Txn Hash: {tx_hash}")
-                return False
-        else:
-            logger.success(f"Transaction sent. Txn Hash: {tx_hash}")
-            return True
+        return txn_status
 
     def claim_batch(self, private_key: str):
         sender_account = self.get_account(private_key=private_key)
