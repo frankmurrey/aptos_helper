@@ -1,9 +1,11 @@
 import random
 import time
-
-from typing import Union
+from datetime import datetime
 
 from contracts.base import Token
+
+from src.schemas.wallet_log import WalletActionSchema
+from src.action_logger import ActionLogger
 
 from aptos_rest_client import CustomRestClient
 from aptos_rest_client.client import (ResourceNotFound,
@@ -20,6 +22,7 @@ from loguru import logger
 
 class AptosBase(CustomRestClient):
     def __init__(self, base_url: str, proxies: dict = None):
+        self.proxies = proxies
         super().__init__(base_url=base_url, proxies=proxies)
 
     def get_random_amount_out(self,
@@ -254,6 +257,17 @@ class AptosBase(CustomRestClient):
                                                     txn_payload: EntryFunction,
                                                     txn_info_message: str
                                                     ):
+        current_proxy_body = None
+        if self.proxies:
+            current_proxy = self.proxies.get('http://')
+            current_proxy_body = current_proxy.split("://")[1]
+
+        wallet_log = WalletActionSchema(
+            wallet_address=str(sender_account.address()),
+            date_time=datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
+            action_type=txn_info_message,
+            proxy=current_proxy_body)
+
         simulated_raw_transaction_gas_estimate = self.prebuild_payload_and_estimate_transaction(
             sender_account=sender_account,
             txn_payload=txn_payload,
@@ -279,6 +293,11 @@ class AptosBase(CustomRestClient):
                          f" Txn Hash: {tx_hash}")
             txn_receipt = self.wait_for_receipt(txn_hash=tx_hash,
                                                 timeout=config.txn_wait_timeout_sec)
+            wallet_log.transaction_hash = tx_hash
+            wallet_log.is_success = txn_receipt
+
+            action_logger = ActionLogger(action_data=wallet_log)
+            action_logger.log_action()
 
             if txn_receipt is True:
                 logger.success(f"Transaction success:"
@@ -289,6 +308,12 @@ class AptosBase(CustomRestClient):
                 logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
                 return False
         else:
+            wallet_log.txn_hash = tx_hash
+            wallet_log.is_success = None
+
+            action_logger = ActionLogger(action_data=wallet_log)
+            action_logger.log_action()
+
             logger.success(f"Transaction sent:"
                            f" {txn_info_message}"
                            f" Txn Hash: {tx_hash}")
