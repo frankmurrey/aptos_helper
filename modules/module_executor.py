@@ -10,6 +10,7 @@ from src.proxy_manager import ProxyManager
 from src.schemas.wallet_data import WalletData
 from src.storage import WalletsStorage
 from src.templates.templates import Templates
+from src.action_logger import log_all_actions_to_xlsx
 
 from modules.pancake.swap import PancakeSwap
 from modules.liquidity_swap.swap import Swap
@@ -70,7 +71,12 @@ class ModuleExecutor:
             execute_status: bool = self.execute_module(wallet_data=wallet_data,
                                                        base_url=self.wallets_storage.get_rpc_url())
 
+            if self.config.test_mode is True and index == 2:
+                logger.info(f"Test mode enabled, process is finished\n")
+                break
+
             if index == wallets_amount - 1:
+                log_all_actions_to_xlsx()
                 logger.info(f"Process is finished\n")
                 break
 
