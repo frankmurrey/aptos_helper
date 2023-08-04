@@ -5,6 +5,7 @@ shius.txt
 .idea
 .xlsx
 .csv
+logs/
 *__pycache__*
 *.json
 *.yaml
