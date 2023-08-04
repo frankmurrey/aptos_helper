@@ -3,16 +3,13 @@ import customtkinter
 from src.utils.generate_wallets import generate_keys
 
 from tkinter import (messagebox,
-                     StringVar,
                      filedialog)
-
 
 
 class ToolsTopLevelWindow(customtkinter.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.geometry("400x600")
-
 
         self.generator_label = customtkinter.CTkLabel(self,
                                                       text="Generate aptos keys:",
