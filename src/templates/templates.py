@@ -38,7 +38,7 @@ class Templates:
 
             if file_path.endswith('logs'):
                 os.mkdir(file_path)
-                logger.debug(f'Created {file_path} directory')
+                logger.debug(f'Created {file_path} directory\n')
 
     def create_tokens_json_file(self, file_path):
         data = TOKENS_DATA
