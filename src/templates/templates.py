@@ -36,6 +36,10 @@ class Templates:
             if file_path.endswith('rpc_urls.json'):
                 self.create_rpc_urls_json_file(file_path=file_path)
 
+            if file_path.endswith('logs'):
+                os.mkdir(file_path)
+                logger.debug(f'Created {file_path} directory')
+
     def create_tokens_json_file(self, file_path):
         data = TOKENS_DATA
         self.file_manager.write_data_to_json_file(file_path=file_path,
