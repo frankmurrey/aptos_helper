@@ -30,7 +30,10 @@ class Liquidity(customtkinter.CTk):
         self.remove_liq_data = None
         self.wallets_storage = WalletsStorage()
 
-        self.liquidity_protocol_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+        self.liquidity_protocol_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
+        self.liquidity_protocol_frame.grid(row=0, column=0, padx=15, pady=(15, 0), sticky="nsew")
+
+        self.liquidity_protocol_combobox = customtkinter.CTkComboBox(self.liquidity_protocol_frame,
                                                                      values=self.protocol_options,
                                                                      command=self.protocol_change_event)
 
@@ -143,11 +146,11 @@ class Liquidity(customtkinter.CTk):
                                                           width=70)
 
     def _add_liquidity_protocol_fields(self):
-        liquidity_protocol_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        liquidity_protocol_label = customtkinter.CTkLabel(self.liquidity_protocol_frame,
                                                           text="Liquidity protocol:",
                                                           font=customtkinter.CTkFont(size=12, weight="bold"))
-        liquidity_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
-        self.liquidity_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        liquidity_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.liquidity_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def add_add_liq_switch(self):
         self.add_liq_switch.grid(row=2, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
@@ -243,7 +246,7 @@ class Liquidity(customtkinter.CTk):
         self.wait_for_transaction_checkbox.grid(row=7, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(50, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(45, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=9, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
