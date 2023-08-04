@@ -22,5 +22,6 @@ class TempFiles:
     def __init__(self):
         self.TOKENS_JSON_FILE = os.path.join(CONTRACTS_DIR, "tokens.json")
         self.RPC_URLS_JSON_FILE = os.path.join(CONTRACTS_DIR, "rpc_urls.json")
+        self.LOGS_DIR = LOGS_DIR
 
 
