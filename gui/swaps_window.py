@@ -1,4 +1,5 @@
 import yaml
+import random
 
 import customtkinter
 
@@ -28,7 +29,10 @@ class SwapsModule(customtkinter.CTk):
         self.wallets_storage = WalletsStorage()
         self.protocol_name = None
 
-        self.swap_protocol_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+        self.swap_protocol_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
+        self.swap_protocol_frame.grid(row=0, column=0, padx=15, pady=(10, 0), sticky="nsew")
+
+        self.swap_protocol_combobox = customtkinter.CTkComboBox(self.swap_protocol_frame,
                                                                 values=self.swap_protocol_options,
                                                                 command=self.protocol_change_event)
 
@@ -41,6 +45,14 @@ class SwapsModule(customtkinter.CTk):
 
         self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.swap_settings_frame,
                                                                   values=self.coin_to_receive_options())
+
+        self.random_dst_coin_checkbox = customtkinter.CTkCheckBox(self.swap_settings_frame,
+                                                                  text="Random dest coin",
+                                                                  checkbox_width=18,
+                                                                  checkbox_height=18,
+                                                                  onvalue=True,
+                                                                  offvalue=False,
+                                                                  command=self.random_dest_coin_event)
 
         self.min_amount_entry = customtkinter.CTkEntry(self.swap_settings_frame,
                                                        width=140,
@@ -115,11 +127,11 @@ class SwapsModule(customtkinter.CTk):
                                                           command=self.load_config_event)
 
     def _add_swap_protocol_fields(self):
-        swap_protocol_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        swap_protocol_label = customtkinter.CTkLabel(self.swap_protocol_frame,
                                                      text="Swap protocol:",
                                                      font=customtkinter.CTkFont(size=12, weight="bold"))
-        swap_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        swap_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_coin_to_swap_fields(self):
         coin_to_swap_label = customtkinter.CTkLabel(self.swap_settings_frame,
@@ -137,23 +149,26 @@ class SwapsModule(customtkinter.CTk):
         coin_to_receive_label.grid(row=0, column=1, padx=(30, 0), pady=(10, 0), sticky="w")
         self.coin_to_receive_combobox.grid(row=1, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
 
+    def _add_random_dst_coin_checkbox(self):
+        self.random_dst_coin_checkbox.grid(row=2, column=1, padx=(30, 0), pady=(5, 0), sticky="w")
+
     def _add_min_amount_out_fields(self):
         min_amount_out_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                       text="Min amount:",
                                                       font=customtkinter.CTkFont(size=12, weight="bold"))
-        min_amount_out_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_amount_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 5), sticky="w")
+        min_amount_out_label.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.min_amount_entry.grid(row=4, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_max_amount_out_fields(self):
         max_amount_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                   text="Max amount:",
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_amount_label.grid(row=2, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
-        self.max_amount_entry.grid(row=3, column=1, padx=(30, 0), pady=(0, 5), sticky="w")
+        max_amount_label.grid(row=3, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
+        self.max_amount_entry.grid(row=4, column=1, padx=(30, 0), pady=(0, 5), sticky="w")
 
     def _add_send_all_balance_checkbox(self):
-        self.send_all_balance_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
+        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_gas_price_fields(self):
         gas_price_label = customtkinter.CTkLabel(self.txn_settings_frame,
@@ -207,7 +222,7 @@ class SwapsModule(customtkinter.CTk):
         self.wait_for_transaction_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(180, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(120, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -278,6 +293,12 @@ class SwapsModule(customtkinter.CTk):
         self.coin_to_receive_combobox.configure(values=self.coin_to_receive_options())
         self.coin_to_receive_combobox.set(self.coin_to_receive_options()[0])
 
+    def random_dest_coin_event(self, ):
+        if self.random_dst_coin_checkbox.get() is True:
+            self.coin_to_receive_combobox.configure(state="disabled")
+        else:
+            self.coin_to_receive_combobox.configure(state="normal")
+
     def send_all_balance_checkbox_event(self):
         checkbox_status = self.send_all_balance_checkbox.get()
         if checkbox_status is True:
@@ -299,6 +320,25 @@ class SwapsModule(customtkinter.CTk):
             self.transaction_wait_time_entry.configure(placeholder_text="")
             self.transaction_wait_time_entry.configure(state="disabled")
 
+    def get_random_dst_coin(self):
+        current_protocol = self.swap_protocol_combobox.get()
+        if current_protocol == "Pancake":
+            protocol_available_coins = self.get_pancake_available_coin_names()
+            protocol_available_coins.remove(self.coin_to_swap_combobox.get())
+
+        elif current_protocol == "Liquid Swap":
+            protocol_available_coins = self.get_liquid_swap_available_coin_names()
+            protocol_available_coins.remove(self.coin_to_swap_combobox.get())
+
+        else:
+            protocol_available_coins = []
+
+        if not protocol_available_coins:
+            return []
+
+        random_dst_coin = random.choice(protocol_available_coins)
+        return random_dst_coin
+
     def get_values(self):
         swap_protocol = self.swap_protocol_combobox.get()
         if swap_protocol == "Pancake":
@@ -310,7 +350,11 @@ class SwapsModule(customtkinter.CTk):
             return
 
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
-        self.data.coin_to_receive = self.coin_to_receive_combobox.get()
+        self.data.random_dst_coin = self.random_dst_coin_checkbox.get()
+        if self.data.random_dst_coin is True:
+            self.data.coin_to_receive = self.get_random_dst_coin()
+        else:
+            self.data.coin_to_receive = self.coin_to_receive_combobox.get()
         self.data.min_amount_out = self.min_amount_entry.get()
         self.data.max_amount_out = self.max_amount_entry.get()
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
@@ -330,7 +374,12 @@ class SwapsModule(customtkinter.CTk):
             self.swap_protocol_combobox.set(self.protocol_name)
 
         self.coin_to_swap_combobox.set(self.data.coin_to_swap)
-        self.coin_to_receive_combobox.set(self.data.coin_to_receive)
+        if self.data.random_dst_coin is True:
+            self.random_dst_coin_checkbox.select()
+            self.coin_to_receive_combobox.configure(state="disabled")
+        else:
+            self.random_dst_coin_checkbox.deselect()
+            self.coin_to_receive_combobox.configure(state="normal")
 
         if self.data.send_all_balance is True:
             self.send_all_balance_checkbox.select()
@@ -366,7 +415,7 @@ class SwapsModule(customtkinter.CTk):
 
     def check_config(self):
         route_validator = SwapRouteValidator(self.get_values())
-        validation_status = route_validator.validate()
+        validation_status = route_validator.check_is_route_valid()
         if validation_status is not True:
             messagebox.showerror("Error", validation_status)
             return
@@ -389,6 +438,7 @@ class SwapsModule(customtkinter.CTk):
 
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
         self.data.coin_to_receive = self.coin_to_receive_combobox.get()
+        self.data.random_dst_coin = self.random_dst_coin_checkbox.get()
         self.data.min_amount_out = float(self.min_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.max_amount_out = float(self.max_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
@@ -484,6 +534,7 @@ class SwapsModule(customtkinter.CTk):
         self._add_swap_protocol_fields()
         self._add_coin_to_swap_fields()
         self._add_coin_to_receive_fields()
+        self._add_random_dst_coin_checkbox()
         self._add_min_amount_out_fields()
         self._add_max_amount_out_fields()
         self._add_send_all_balance_checkbox()
