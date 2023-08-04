@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 
 from typing import Union, List
 
@@ -36,28 +37,46 @@ class FileManager:
         with open(file_path, "w") as file:
             json.dump(data, file, indent=4)
 
+    def write_data_to_csv(self,
+                          path,
+                          file_name,
+                          data: list):
+        if not os.path.exists(path):
+            return
+
+        file_path = f"{path}\\{file_name}"
+        with open(file_path, "a", newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(data)
+
     def _extract_valid_proxy_data_from_str(self, proxy_data: str) -> Union[List[ProxyData], None]:
         if not proxy_data:
             return None
 
-        proxy_data = proxy_data.split(":")
-        if len(proxy_data) == 2:
-            host, port = proxy_data
-            proxy_data = ProxyData(host=host,
-                                   port=port)
+        if proxy_data == "##":
+            return None
 
-        elif len(proxy_data) == 4:
-            host, port, username, password = proxy_data
-            proxy_data = ProxyData(host=host,
-                                   port=port,
-                                   username=username,
-                                   password=password,
-                                   auth=True)
+        try:
+            proxy_data = proxy_data.split(":")
+            if len(proxy_data) == 2:
+                host, port = proxy_data
+                proxy_data = ProxyData(host=host,
+                                       port=port)
 
-        else:
-            proxy_data = None
+            elif len(proxy_data) == 4:
+                host, port, username, password = proxy_data
+                proxy_data = ProxyData(host=host,
+                                       port=port,
+                                       username=username,
+                                       password=password,
+                                       auth=True)
 
-        return proxy_data
+            else:
+                proxy_data = None
+
+            return proxy_data
+        except Exception as e:
+            return None
 
     def get_wallets(self,
                     aptos_wallets_data=None,
