@@ -7,6 +7,7 @@ class LiqSwSwapConfigSchema(TransferBase):
     module_name: str = "liquidityswap_swap"
     coin_to_swap: Union[str, None] = ""
     coin_to_receive: Union[str, None] = ""
+    random_dst_coin: Union[bool, str] = False
     send_all_balance: Union[bool, str] = False
     slippage: Union[int, float, str] = 0
 

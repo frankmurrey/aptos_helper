@@ -37,17 +37,20 @@ class AbleFinanceWindow(customtkinter.CTk):
                                                     height=20,
                                                     command=self.redeem_button_event)
 
-        self.coin_option_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+        self.stake_settings_frame = customtkinter.CTkFrame(master=self.tabview.tab(self._tab_name))
+        self.stake_settings_frame.grid(row=2, column=0, padx=15, pady=(10, 0), sticky="nsew")
+
+        self.coin_option_combobox = customtkinter.CTkComboBox(self.stake_settings_frame,
                                                               values=self._available_coins)
 
-        self.min_amount_out_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.min_amount_out_entry = customtkinter.CTkEntry(self.stake_settings_frame,
                                                            width=140,
                                                            placeholder_text="10")
-        self.max_amount_out_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.max_amount_out_entry = customtkinter.CTkEntry(self.stake_settings_frame,
                                                            width=140,
                                                            placeholder_text="20")
 
-        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
+        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.stake_settings_frame,
                                                                    text="Send all balance",
                                                                    checkbox_width=18,
                                                                    checkbox_height=18,
@@ -55,22 +58,25 @@ class AbleFinanceWindow(customtkinter.CTk):
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
 
-        self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.txn_settings_frame = customtkinter.CTkFrame(master=self.tabview.tab(self._tab_name))
+        self.txn_settings_frame.grid(row=3, column=0, padx=15, pady=(10, 0), sticky="nsew")
+
+        self.gas_price_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=70,
                                                       textvariable=StringVar(value="100"))
 
-        self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.gas_limit_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=70)
 
-        self.min_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.min_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=140,
                                                       textvariable=StringVar(value="20"))
 
-        self.max_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.max_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=140,
                                                       textvariable=StringVar(value="40"))
 
-        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
+        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.txn_settings_frame,
                                                                        text="Wait for transaction",
                                                                        checkbox_width=18,
                                                                        checkbox_height=18,
@@ -78,7 +84,7 @@ class AbleFinanceWindow(customtkinter.CTk):
                                                                        offvalue=False,
                                                                        command=self.wait_for_transaction_checkbox_event)
 
-        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                                   width=140,
                                                                   state="disabled")
 
@@ -134,73 +140,73 @@ class AbleFinanceWindow(customtkinter.CTk):
         claim_button_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                     text="Unstake chosen coin",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(0, 0), sticky="w")
+        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(0, 10), sticky="w")
         claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=0, column=0, padx=(180, 0), pady=(0, 0), sticky="w")
-        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        claim_button_mark.grid(row=0, column=0, padx=(180, 0), pady=(0, 10), sticky="w")
+        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_coin_option_combobox_fields(self):
-        coin_option_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        coin_option_label = customtkinter.CTkLabel(self.stake_settings_frame,
                                                    text="Select coin:",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        coin_option_label.grid(row=1, column=0, sticky="w", padx=(20, 0), pady=(0, 0))
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        coin_option_label.grid(row=1, column=0, sticky="w", padx=(20, 0), pady=(10, 0))
+        claim_button_mark = customtkinter.CTkLabel(self.stake_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=1, column=0, padx=(96, 0), pady=(0, 0), sticky="w")
+        claim_button_mark.grid(row=1, column=0, padx=(96, 0), pady=(10, 0), sticky="w")
         self.coin_option_combobox.grid(row=2, column=0, sticky="w", padx=(20, 0), pady=(0, 0))
 
     def _add_min_amount_out_entry(self):
-        min_amount_out_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        min_amount_out_label = customtkinter.CTkLabel(self.stake_settings_frame,
                                                       text="Min amount out:",
                                                       font=customtkinter.CTkFont(size=12, weight="bold"))
         min_amount_out_label.grid(row=3, column=0, sticky="w", padx=(20, 0), pady=(0, 0))
-        self.min_amount_out_entry.grid(row=4, column=0, sticky="w", padx=(20, 0), pady=(0, 0))
+        self.min_amount_out_entry.grid(row=4, column=0, sticky="w", padx=(20, 0), pady=(0, 10))
 
     def _add_max_amount_out_entry(self):
-        max_amount_out_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        max_amount_out_label = customtkinter.CTkLabel(self.stake_settings_frame,
                                                       text="Max amount out:",
                                                       font=customtkinter.CTkFont(size=12, weight="bold"))
-        max_amount_out_label.grid(row=3, column=1, sticky="w", padx=(0, 0), pady=(0, 0))
-        self.max_amount_out_entry.grid(row=4, column=1, sticky="e", padx=(0, 20), pady=(0, 0))
+        max_amount_out_label.grid(row=3, column=1, sticky="w", padx=(45, 0), pady=(0, 0))
+        self.max_amount_out_entry.grid(row=4, column=1, sticky="e", padx=(45, 0), pady=(0, 10))
 
     def _add_send_all_balance_checkbox(self):
-        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_gas_price_entry(self):
-        gas_price_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_price_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Gas price:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
-        gas_price_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_price_label.grid(row=6, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=6, column=0, padx=(85, 0), pady=(0, 0), sticky="w")
+        claim_button_mark.grid(row=6, column=0, padx=(85, 0), pady=(10, 0), sticky="w")
         self.gas_price_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_limit_entry(self):
-        gas_limit_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_limit_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Gas limit:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
-        gas_limit_label.grid(row=6, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_limit_label.grid(row=6, column=0, padx=(105, 0), pady=(10, 0), sticky="w")
+        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=6, column=0, padx=(168, 0), pady=(0, 0), sticky="w")
+        claim_button_mark.grid(row=6, column=0, padx=(168, 0), pady=(10, 0), sticky="w")
         self.gas_limit_entry.grid(row=7, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
     def _add_min_delay_entry(self):
-        min_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        min_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Min delay:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         min_delay_label.grid(row=8, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -208,44 +214,44 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.min_delay_entry.grid(row=9, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_entry(self):
-        max_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        max_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Max delay:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
         max_delay_label.grid(row=8, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
         claim_button_mark.grid(row=8, column=1, padx=(70, 0), pady=(0, 0), sticky="w")
-        self.max_delay_entry.grid(row=9, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        self.max_delay_entry.grid(row=9, column=1, padx=(0, 0), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
-        transaction_wait_time_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        transaction_wait_time_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                              text="Transaction wait time (sec):",
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))
 
         transaction_wait_time_label.grid(row=10, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
         claim_button_mark.grid(row=10, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
-        self.transaction_wait_time_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.transaction_wait_time_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_wait_for_transaction_checkbox(self):
-        self.wait_for_transaction_checkbox.grid(row=12, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.wait_for_transaction_checkbox.grid(row=12, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(250, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(260, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=14, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
 
     def _add_save_config_button(self):
-        self.save_config_button.grid(row=14, column=1, padx=(0, 0), pady=(15, 0), sticky="w")
+        self.save_config_button.grid(row=14, column=0, padx=(210, 0), pady=(15, 0), sticky="w")
 
     def _add_load_config_button(self):
-        self.load_config_button.grid(row=14, column=1, padx=(80, 0), pady=(15, 0), sticky="w")
+        self.load_config_button.grid(row=14, column=0, padx=(290, 0), pady=(15, 0), sticky="w")
 
     def update_all_fields(self):
         self.coin_option_combobox.set(self.mint_data.coin_option)
