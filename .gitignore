@@ -3,6 +3,8 @@ evm_addresses.txt
 proxy.txt
 shius.txt
 .idea
+.xlsx
+.csv
 *__pycache__*
 *.json
 *.yaml
