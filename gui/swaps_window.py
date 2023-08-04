@@ -32,22 +32,25 @@ class SwapsModule(customtkinter.CTk):
                                                                 values=self.swap_protocol_options,
                                                                 command=self.protocol_change_event)
 
-        self.coin_to_swap_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+        self.swap_settings_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
+        self.swap_settings_frame.grid(row=2, column=0, padx=15, pady=(15, 0), sticky="nsew")
+
+        self.coin_to_swap_combobox = customtkinter.CTkComboBox(self.swap_settings_frame,
                                                                values=self.coin_to_swap_options,
                                                                command=self.update_coin_combos)
 
-        self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.tabview.tab(self._tab_name),
+        self.coin_to_receive_combobox = customtkinter.CTkComboBox(self.swap_settings_frame,
                                                                   values=self.coin_to_receive_options())
 
-        self.min_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.min_amount_entry = customtkinter.CTkEntry(self.swap_settings_frame,
                                                        width=140,
                                                        textvariable=StringVar(value=""))
 
-        self.max_amount_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.max_amount_entry = customtkinter.CTkEntry(self.swap_settings_frame,
                                                        width=140,
                                                        textvariable=StringVar(value=""))
 
-        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
+        self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.swap_settings_frame,
                                                                    text="Send all balance",
                                                                    checkbox_width=18,
                                                                    checkbox_height=18,
@@ -55,30 +58,29 @@ class SwapsModule(customtkinter.CTk):
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
 
-        self.empty_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
-                                                  text="",
-                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
+        self.txn_settings_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame.grid(row=3, column=0, padx=15, pady=(15, 0), sticky="nsew")
 
-        self.gas_price_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.gas_price_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=70,
                                                       textvariable=StringVar(value="100"))
 
-        self.gas_limit_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.gas_limit_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=70)
 
-        self.slippage_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.slippage_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                      width=70,
                                                      textvariable=StringVar(value="0.5"))
 
-        self.min_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.min_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=140,
                                                       textvariable=StringVar(value="20"))
 
-        self.max_delay_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.max_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                       width=140,
                                                       textvariable=StringVar(value="40"))
 
-        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
+        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.txn_settings_frame,
                                                                        text="Wait for transaction",
                                                                        checkbox_width=18,
                                                                        checkbox_height=18,
@@ -86,7 +88,7 @@ class SwapsModule(customtkinter.CTk):
                                                                        offvalue=False,
                                                                        command=self.wait_for_transaction_checkbox_event)
 
-        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.tabview.tab(self._tab_name),
+        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                                   width=140,
                                                                   state="disabled")
 
@@ -114,110 +116,107 @@ class SwapsModule(customtkinter.CTk):
 
     def _add_swap_protocol_fields(self):
         swap_protocol_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
-                                                        text="Swap protocol:",
-                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
+                                                     text="Swap protocol:",
+                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
         swap_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
         self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_coin_to_swap_fields(self):
-        coin_to_swap_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        coin_to_swap_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                     text="Coin to swap:",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_swap_label.grid(row=2, column=0, padx=(20, 0), pady=(20, 0), sticky="w")
-        self.coin_to_swap_combobox.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        coin_to_swap_label.grid(row=0, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
+        self.coin_to_swap_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_coin_to_receive_fields(self):
-        coin_to_receive_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        coin_to_receive_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                        text="Coin to receive:",
                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_receive_label.grid(row=2, column=1, padx=(0, 20), pady=(20, 0), sticky="w")
-        self.coin_to_receive_combobox.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        coin_to_receive_label.grid(row=0, column=1, padx=(30, 0), pady=(10, 0), sticky="w")
+        self.coin_to_receive_combobox.grid(row=1, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
 
     def _add_min_amount_out_fields(self):
-        min_amount_out_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        min_amount_out_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                       text="Min amount:",
                                                       font=customtkinter.CTkFont(size=12, weight="bold"))
-        min_amount_out_label.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_amount_entry.grid(row=5, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        min_amount_out_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.min_amount_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 5), sticky="w")
 
     def _add_max_amount_out_fields(self):
-        max_amount_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        max_amount_label = customtkinter.CTkLabel(self.swap_settings_frame,
                                                   text="Max amount:",
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_amount_label.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.max_amount_entry.grid(row=5, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        max_amount_label.grid(row=2, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
+        self.max_amount_entry.grid(row=3, column=1, padx=(30, 0), pady=(0, 5), sticky="w")
 
     def _add_send_all_balance_checkbox(self):
-        self.send_all_balance_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
-
-    def _add_empty_label(self):
-        self.empty_label.grid(row=7, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.send_all_balance_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_gas_price_fields(self):
-        gas_price_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_price_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Gas price:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        gas_price_label.grid(row=8, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.gas_price_entry.grid(row=9, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        gas_price_label.grid(row=0, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
+        self.gas_price_entry.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_limit_fields(self):
-        gas_limit_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        gas_limit_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Gas limit:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        gas_limit_label.grid(row=8, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
-        self.gas_limit_entry.grid(row=9, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
+        gas_limit_label.grid(row=0, column=0, padx=(105, 0), pady=(10, 0), sticky="w")
+        self.gas_limit_entry.grid(row=1, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
     def _add_slippage_fields(self):
-        slippage_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        slippage_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                 text="Slippage %:",
                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        slippage_label.grid(row=10, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.slippage_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        slippage_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.slippage_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_min_delay_fields(self):
-        min_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        min_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Min delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        min_delay_label.grid(row=12, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_delay_entry.grid(row=13, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        min_delay_label.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.min_delay_entry.grid(row=5, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_fields(self):
-        max_delay_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        max_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                  text="Max delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_delay_label.grid(row=12, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.max_delay_entry.grid(row=13, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        max_delay_label.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        self.max_delay_entry.grid(row=5, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
-        transaction_wait_time_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
+        transaction_wait_time_label = customtkinter.CTkLabel(self.txn_settings_frame,
                                                              text="Transaction wait time (sec):",
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        transaction_wait_time_label.grid(row=14, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.transaction_wait_time_entry.grid(row=15, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        transaction_wait_time_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.transaction_wait_time_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_wait_for_transaction_checkbox(self):
-        self.wait_for_transaction_checkbox.grid(row=16, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
+        self.wait_for_transaction_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=17, column=0, padx=(20, 0), pady=(120, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(180, 0), sticky="w")
 
     def _add_next_button(self):
-        self.next_button.grid(row=18, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
+        self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
 
     def _add_save_config_button(self):
-        self.save_config_button.grid(row=18, column=1, padx=(0, 0), pady=(15, 0), sticky="w")
+        self.save_config_button.grid(row=5, column=0, padx=(210, 0), pady=(15, 0), sticky="w")
 
     def _add_load_config_button(self):
-        self.load_config_button.grid(row=18, column=1, padx=(80, 0), pady=(15, 0), sticky="w")
+        self.load_config_button.grid(row=5, column=0, padx=(290, 0), pady=(15, 0), sticky="w")
 
     def get_pancake_available_coin_names(self):
         pancake_coins = Tokens().get_pancake_available_coins()
@@ -488,7 +487,6 @@ class SwapsModule(customtkinter.CTk):
         self._add_min_amount_out_fields()
         self._add_max_amount_out_fields()
         self._add_send_all_balance_checkbox()
-        self._add_empty_label()
         self._add_gas_price_fields()
         self._add_gas_limit_fields()
         self._add_slippage_fields()
