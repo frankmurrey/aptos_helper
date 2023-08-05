@@ -101,7 +101,7 @@ class Liquidity(AptosBase):
 
         return amount_in
 
-    def build_add_liquidity_transaction_payload(self, sender_account: Account,):
+    def build_add_liquidity_transaction_payload(self, sender_account: Account):
         tokens_reserve: dict = self.get_token_pair_reserve()
         if tokens_reserve is None:
             return None
