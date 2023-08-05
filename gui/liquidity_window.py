@@ -122,7 +122,8 @@ class Liquidity(customtkinter.CTk):
 
         self.transaction_wait_time_entry = customtkinter.CTkEntry(self.common_settings_frame,
                                                                   width=140,
-                                                                  state="disabled")
+                                                                  state="disabled",
+                                                                  fg_color='#3f3f3f')
 
         self.test_mode_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                             text="Test mode",
@@ -150,7 +151,7 @@ class Liquidity(customtkinter.CTk):
                                                           text="Liquidity protocol:",
                                                           font=customtkinter.CTkFont(size=12, weight="bold"))
         liquidity_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
-        self.liquidity_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        self.liquidity_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def add_add_liq_switch(self):
         self.add_liq_switch.grid(row=2, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
@@ -352,9 +353,9 @@ class Liquidity(customtkinter.CTk):
     def wait_for_transaction_checkbox_event(self):
         checkbox_status = self.wait_for_transaction_checkbox.get()
         if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120")
+            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def add_switch_event(self):
