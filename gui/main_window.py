@@ -6,6 +6,7 @@ from gui.swaps_window import SwapsModule
 from gui.aptos_bridge_window import AptosBridgeModule
 from gui.abel_finance_window import AbleFinanceWindow
 from gui.liquidity_window import Liquidity
+from gui.delegation_window import DelegationWindow
 from gui.tools_window import ToolsTopLevelWindow
 
 from src.file_manager import FileManager
@@ -73,15 +74,20 @@ class MainWindow(customtkinter.CTk):
                                                                 command=self.add_liquidity_tabview)
         self.sidebar_liquidity_button.grid(row=2, column=0, padx=20, pady=10)
 
+        self.sidebar_delegation_button = customtkinter.CTkButton(self.sidebar_frame,
+                                                                 text="Delegation",
+                                                                 command=self.add_delegation_tabview)
+        self.sidebar_delegation_button.grid(row=3, column=0, padx=20, pady=10)
+
         self.sidebar_aptos_bridge_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                    text="Aptos Bridge",
                                                                    command=self.add_aptos_bridge_tabview)
-        self.sidebar_aptos_bridge_button.grid(row=3, column=0, padx=20, pady=10)
+        self.sidebar_aptos_bridge_button.grid(row=4, column=0, padx=20, pady=10)
 
         self.sidebar_abel_finance_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                    text="Abel finance",
                                                                    command=self.add_abel_finance_tabview)
-        self.sidebar_abel_finance_button.grid(row=4, column=0, padx=20, pady=10)
+        self.sidebar_abel_finance_button.grid(row=5, column=0, padx=20, pady=10)
 
         tools_logo_img = customtkinter.CTkImage(light_image=Image.open(TOOLS_LOGO),
                                                 size=(20, 20))
@@ -92,13 +98,13 @@ class MainWindow(customtkinter.CTk):
                                                     hover_color="#80400B",
                                                     anchor="c",
                                                     command=self.open_tools_window)
-        self.tools_button.grid(row=5, column=0, padx=20, pady=10)
+        self.tools_button.grid(row=6, column=0, padx=20, pady=10)
 
         self.wallets_loaded_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                            text="Wallets Loaded:",
                                                            anchor="w",
                                                            font=customtkinter.CTkFont(size=16, weight="bold"))
-        self.wallets_loaded_label.grid(row=6, column=0, padx=20, pady=(0, 0))
+        self.wallets_loaded_label.grid(row=7, column=0, padx=20, pady=(0, 0))
 
         self.load_aptos_wallets_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                  text="+",
@@ -107,20 +113,20 @@ class MainWindow(customtkinter.CTk):
                                                                  anchor="c",
                                                                  corner_radius=200,
                                                                  command=self.load_aptos_wallets_from_file)
-        self.load_aptos_wallets_button.grid(row=6, column=0, padx=(0, 118), pady=(70, 0))
+        self.load_aptos_wallets_button.grid(row=7, column=0, padx=(0, 118), pady=(70, 0))
 
         self.aptos_wallet_load_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                               text=f"Aptos: ",
                                                               anchor="w",
                                                               bg_color="transparent",
                                                               font=customtkinter.CTkFont(size=14, weight="bold"))
-        self.aptos_wallet_load_label.grid(row=6, column=0, padx=(0, 15), pady=(70, 0))
+        self.aptos_wallet_load_label.grid(row=7, column=0, padx=(0, 15), pady=(70, 0))
         self.aptos_loaded_wallet_num_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                                     text=f"{len(self.aptos_wallets_data)}",
                                                                     justify="right",
                                                                     font=customtkinter.CTkFont(size=16, weight="bold")
                                                                     )
-        self.aptos_loaded_wallet_num_label.grid(row=6, column=0, padx=(70, 0), pady=(70, 0))
+        self.aptos_loaded_wallet_num_label.grid(row=7, column=0, padx=(70, 0), pady=(70, 0))
 
         self.load_evm_addresses_button = customtkinter.CTkButton(self.sidebar_frame,
                                                                  text="+",
@@ -129,20 +135,20 @@ class MainWindow(customtkinter.CTk):
                                                                  anchor="c",
                                                                  corner_radius=200,
                                                                  command=self.load_evm_addresses_from_file)
-        self.load_evm_addresses_button.grid(row=6, column=0, padx=(0, 118), pady=(140, 0))
+        self.load_evm_addresses_button.grid(row=7, column=0, padx=(0, 118), pady=(140, 0))
 
         self.evm_addresses_load_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                                text=f"EVM: ",
                                                                anchor="e",
                                                                bg_color="transparent",
                                                                font=customtkinter.CTkFont(size=14, weight="bold"))
-        self.evm_addresses_load_label.grid(row=6, column=0, padx=(0, 25), pady=(140, 0))
+        self.evm_addresses_load_label.grid(row=7, column=0, padx=(0, 25), pady=(140, 0))
         self.evm_addresses_loaded_num_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                                      text=f"{len(self.evm_addresses_data)}",
                                                                      anchor="e",
                                                                      bg_color="transparent",
                                                                      font=customtkinter.CTkFont(size=16, weight="bold"))
-        self.evm_addresses_loaded_num_label.grid(row=6, column=0, padx=(70, 0), pady=(140, 0))
+        self.evm_addresses_loaded_num_label.grid(row=7, column=0, padx=(70, 0), pady=(140, 0))
 
         self.load_proxy_button = customtkinter.CTkButton(self.sidebar_frame,
                                                          text="+",
@@ -152,20 +158,20 @@ class MainWindow(customtkinter.CTk):
                                                          corner_radius=200,
                                                          command=self.load_proxy_from_file)
 
-        self.load_proxy_button.grid(row=6, column=0, padx=(0, 118), pady=(210, 0))
+        self.load_proxy_button.grid(row=7, column=0, padx=(0, 118), pady=(210, 0))
 
         self.proxy_load_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                        text=f"Proxy: ",
                                                        anchor="e",
                                                        bg_color="transparent",
                                                        font=customtkinter.CTkFont(size=14, weight="bold"))
-        self.proxy_load_label.grid(row=6, column=0, padx=(0, 18), pady=(210, 0))
+        self.proxy_load_label.grid(row=7, column=0, padx=(0, 18), pady=(210, 0))
         self.proxy_loaded_num_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                              text=f"{len(self.proxy_data)}",
                                                              anchor="e",
                                                              bg_color="transparent",
                                                              font=customtkinter.CTkFont(size=16, weight="bold"))
-        self.proxy_loaded_num_label.grid(row=6, column=0, padx=(70, 0), pady=(210, 0))
+        self.proxy_loaded_num_label.grid(row=7, column=0, padx=(70, 0), pady=(210, 0))
 
         self.shuffle_wallets_switch = customtkinter.CTkSwitch(self.sidebar_frame,
                                                               text="Shuffle wallets",
@@ -174,21 +180,14 @@ class MainWindow(customtkinter.CTk):
                                                               onvalue=True,
                                                               offvalue=False,
                                                               command=self.shuffle_wallets_event)
-        self.shuffle_wallets_switch.grid(row=6, column=0, padx=(0, 10), pady=(270, 0))
+        self.shuffle_wallets_switch.grid(row=7, column=0, padx=(0, 10), pady=(270, 0))
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=8, column=0, padx=20, pady=(0, 55))
+        self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(0, 55))
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame,
                                                                        values=["Light", "Dark", "System"],
                                                                        command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=8, column=0, padx=20, pady=(0, 0))
-
-    def open_tools_window(self):
-        if self.tools_window is None or not self.tools_window.winfo_exists():
-            self.tools_window = ToolsTopLevelWindow(self)
-            self.tools_window.title("Tools")
-        else:
-            self.tools_window.focus()
+        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(0, 0))
 
     def add_swaps_tabview(self):
         try:
@@ -233,6 +232,21 @@ class MainWindow(customtkinter.CTk):
             liquidity.add_all_fields()
         except Exception as e:
             pass
+
+    def add_delegation_tabview(self):
+        self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
+        self.tabview.add("Delegate")
+        self.tabview.tab("Delegate").grid_columnconfigure(0, weight=3)
+
+        delegation = DelegationWindow(tabview=self.tabview)
+        delegation.add_all_fields()
+
+    def open_tools_window(self):
+        if self.tools_window is None or not self.tools_window.winfo_exists():
+            self.tools_window = ToolsTopLevelWindow(self)
+            self.tools_window.title("Tools")
+        else:
+            self.tools_window.focus()
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
