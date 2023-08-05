@@ -23,6 +23,9 @@ from modules.abel_finance.mint_redeem import AbleFinance
 from modules.thala.liquidity import Thala
 from modules.liquidity_swap.liquidity import Liquidity as LSLiquidity
 
+from modules.delegation.delegate import Delegate
+from modules.delegation.unlock import Unlock
+
 from loguru import logger
 from aptos_sdk.account import Account
 
@@ -169,10 +172,24 @@ class ModuleExecutor:
 
         elif self.module_name == "liquidityswap_remove_liquidity":
             liq_swap = LSLiquidity(base_url=base_url,
-                                      config=self.config,
-                                      proxies=proxy)
+                                   config=self.config,
+                                   proxies=proxy)
             remove_liq_status = liq_swap.send_remove_liquidity_transaction(private_key=wallet_data.wallet)
             execution_status = remove_liq_status
+
+        elif self.module_name == "delegate":
+            delegate = Delegate(base_url=base_url,
+                                config=self.config,
+                                proxies=proxy)
+            delegate_status = delegate.send_delegation_transaction(private_key=wallet_data.wallet)
+            execution_status = delegate_status
+
+        elif self.module_name == "unlock":
+            unlock = Unlock(base_url=base_url,
+                            config=self.config,
+                            proxies=proxy)
+            unlock_status = unlock.send_unlock_transaction(private_key=wallet_data.wallet)
+            execution_status = unlock_status
 
         return execution_status
 

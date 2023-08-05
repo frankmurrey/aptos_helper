@@ -102,7 +102,8 @@ class SwapsModule(customtkinter.CTk):
 
         self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                                   width=140,
-                                                                  state="disabled")
+                                                                  state="disabled",
+                                                                  fg_color='#3f3f3f')
 
         self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
@@ -131,7 +132,7 @@ class SwapsModule(customtkinter.CTk):
                                                      text="Swap protocol:",
                                                      font=customtkinter.CTkFont(size=12, weight="bold"))
         swap_protocol_label.grid(row=0, column=0, padx=(20, 0), pady=(5, 0), sticky="w")
-        self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        self.swap_protocol_combobox.grid(row=1, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_coin_to_swap_fields(self):
         coin_to_swap_label = customtkinter.CTkLabel(self.swap_settings_frame,
@@ -303,21 +304,23 @@ class SwapsModule(customtkinter.CTk):
         checkbox_status = self.send_all_balance_checkbox.get()
         if checkbox_status is True:
             self.min_amount_entry.configure(placeholder_text="",
-                                            textvariable=StringVar(value=""))
+                                            textvariable=StringVar(value=""),
+                                            fg_color='#3f3f3f')
             self.max_amount_entry.configure(placeholder_text="",
-                                            textvariable=StringVar(value=""))
+                                            textvariable=StringVar(value=""),
+                                            fg_color='#3f3f3f')
             self.min_amount_entry.configure(state="disabled")
             self.max_amount_entry.configure(state="disabled")
         else:
-            self.min_amount_entry.configure(state="normal", placeholder_text="10")
-            self.max_amount_entry.configure(state="normal", placeholder_text="20")
+            self.min_amount_entry.configure(state="normal", placeholder_text="10", fg_color='#343638')
+            self.max_amount_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
 
     def wait_for_transaction_checkbox_event(self):
         checkbox_status = self.wait_for_transaction_checkbox.get()
         if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120")
+            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def get_random_dst_coin(self):

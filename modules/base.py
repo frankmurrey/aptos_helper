@@ -308,7 +308,7 @@ class AptosBase(CustomRestClient):
                 logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
                 return False
         else:
-            wallet_log.txn_hash = tx_hash
+            wallet_log.transaction_hash = tx_hash
             wallet_log.is_success = None
 
             action_logger = ActionLogger(action_data=wallet_log)

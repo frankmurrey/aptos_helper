@@ -1,11 +1,9 @@
 from src.schemas.pancake import PancakeConfigSchema
 from src.schemas.aptos_bridge import AptosBridgeConfigSchema
-from src.schemas.able_finance import (AbleMintConfigSchema,
-                                      AbleRedeemConfigSchema)
+from src.schemas.able_finance import (AbleMintConfigSchema)
 from src.schemas.thala import (ThalaAddLiquidityConfigSchema,
                                ThalaRemoveLiquidityConfigSchema)
-
-from loguru import logger
+from src.schemas.delegation import DelegateConfigSchema
 
 
 class RouteManagerBase:
@@ -33,12 +31,14 @@ class RouteManagerBase:
 class RouteManagerTransferTypeBase(RouteManagerBase):
     def __init__(self, config):
         self.config = config
+        self.config_dict = config.model_dump()
 
     def check_amount_out(self):
         min_out = self.config.min_amount_out
         max_out = self.config.max_amount_out
 
-        if self.config.send_all_balance is False:
+        send_all_balance = self.config.send_all_balance if "send_all_balance" in self.config_dict.keys() else False
+        if send_all_balance is False:
             if not min_out or not max_out:
                 error_msg = f"Min/max amount out should be specified"
                 return error_msg
@@ -354,12 +354,32 @@ class RemoveLiquidityConfigValidator(RouteManagerTransferTypeBase):
         return True
 
 
+class DelegationConfigValidator(RouteManagerTransferTypeBase):
+    config: DelegateConfigSchema
 
+    def __init__(self, config):
+        super().__init__(config)
+        self.config = config
 
+    def check_is_validator_address_valid(self):
+        if not self.config.validator_addr:
+            error_msg = f"Validator address should be specified"
+            return error_msg
 
+        if len(self.config.validator_addr) != 66:
+            error_msg = f"Validator address should be 66 characters long"
+            return error_msg
 
+        return True
 
+    def check_is_route_valid(self):
+        base_validation_status = self.validate()
+        if base_validation_status is not True:
+            return base_validation_status
 
+        status_validator_address = self.check_is_validator_address_valid()
+        if status_validator_address is not True:
+            return status_validator_address
 
-
+        return True
 
