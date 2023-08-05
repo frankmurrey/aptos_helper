@@ -86,7 +86,8 @@ class AbleFinanceWindow(customtkinter.CTk):
 
         self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                                   width=140,
-                                                                  state="disabled")
+                                                                  state="disabled",
+                                                                  fg_color='#3f3f3f')
 
         self.test_mode_checkbox = customtkinter.CTkCheckBox(self.tabview.tab(self._tab_name),
                                                             text="Test mode",
@@ -119,34 +120,36 @@ class AbleFinanceWindow(customtkinter.CTk):
         checkbox_status = self.send_all_balance_checkbox.get()
         if checkbox_status is True:
             self.min_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color='#3f3f3f')
             self.max_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color='#3f3f3f')
             self.min_amount_out_entry.configure(state="disabled")
             self.max_amount_out_entry.configure(state="disabled")
         else:
-            self.min_amount_out_entry.configure(state="normal", placeholder_text="10")
-            self.max_amount_out_entry.configure(state="normal", placeholder_text="20")
+            self.min_amount_out_entry.configure(state="normal", placeholder_text="10", fg_color='#343638')
+            self.max_amount_out_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
 
     def wait_for_transaction_checkbox_event(self):
         checkbox_status = self.wait_for_transaction_checkbox.get()
         if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120")
+            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def _add_claim_button(self):
         claim_button_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                     text="Unstake chosen coin",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(0, 10), sticky="w")
+        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(10, 0), sticky="w")
         claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=0, column=0, padx=(180, 0), pady=(0, 10), sticky="w")
-        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        claim_button_mark.grid(row=0, column=0, padx=(180, 0), pady=(10, 0), sticky="w")
+        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
 
     def _add_coin_option_combobox_fields(self):
         coin_option_label = customtkinter.CTkLabel(self.stake_settings_frame,
