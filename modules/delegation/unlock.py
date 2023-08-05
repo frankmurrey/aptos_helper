@@ -99,20 +99,3 @@ class Unlock(AptosBase):
         )
 
         return txn_status
-
-
-if __name__ == '__main__':
-    config = UnlockConfigSchema(
-        validator_addr="0x9bfd93ebaa1efd65515642942a607eeca53a0188c04c21ced646d2f0b9f551e8",
-        test_mode=False,
-        gas_price=100,
-        gas_limit=20000,
-        wait_for_receipt=True,
-        txn_wait_timeout_seconds=60
-    )
-
-    unlock = Unlock(config=config,
-                    base_url="https://rpc.ankr.com/http/aptos/v1",
-                    proxies=None)
-    unlock.send_unlock_transaction(
-        private_key='0x34ecbdfa94c5507027319cf5cf79ba04fab775b3055bf5d629cd0ff929cc72ca')
