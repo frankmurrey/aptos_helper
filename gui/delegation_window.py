@@ -54,7 +54,7 @@ class DelegationWindow(customtkinter.CTk):
                                                            width=140)
 
         self.validator_address_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
-                                                              text="Validator address",
+                                                              text="Validator address:",
                                                               font=customtkinter.CTkFont(size=16, weight="bold"),
                                                               text_color="#99CCFF")
         self.validator_address_label.grid(row=3, column=0, padx=20, pady=(10, 0), sticky="w")
@@ -248,7 +248,9 @@ class DelegationWindow(customtkinter.CTk):
         if checkbox_status is True:
             self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color="#3f3f3f")
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       textvariable=StringVar(value=""),
+                                                       fg_color="#3f3f3f")
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def input_validator_address_button_event(self):
@@ -399,11 +401,13 @@ class DelegationWindow(customtkinter.CTk):
 
         if self.delegate_data.wait_for_receipt is True:
             self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.delegate_data.txn_wait_timeout_sec))
+            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.delegate_data.txn_wait_timeout_sec),
+                                                       fg_color='#343638')
         else:
             self.wait_for_transaction_checkbox.deselect()
             self.transaction_wait_time_entry.configure(placeholder_text="")
-            self.transaction_wait_time_entry.configure(state="disabled")
+            self.transaction_wait_time_entry.configure(state="disabled",
+                                                       fg_color='#3f3f3f')
         if self.delegate_data.test_mode is True:
             self.test_mode_checkbox.select()
         else:

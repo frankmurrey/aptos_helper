@@ -320,7 +320,9 @@ class SwapsModule(customtkinter.CTk):
         if checkbox_status is True:
             self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       textvariable=StringVar(value=""),
+                                                       fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def get_random_dst_coin(self):
@@ -379,7 +381,7 @@ class SwapsModule(customtkinter.CTk):
         self.coin_to_swap_combobox.set(self.data.coin_to_swap)
         if self.data.random_dst_coin is True:
             self.random_dst_coin_checkbox.select()
-            self.coin_to_receive_combobox.configure(state="disabled")
+            self.coin_to_receive_combobox.configure(state="disabled",)
         else:
             self.random_dst_coin_checkbox.deselect()
             self.coin_to_receive_combobox.configure(state="normal")
@@ -387,15 +389,19 @@ class SwapsModule(customtkinter.CTk):
         if self.data.send_all_balance is True:
             self.send_all_balance_checkbox.select()
             self.min_amount_entry.configure(placeholder_text="",
-                                            textvariable=StringVar(value=""))
+                                            textvariable=StringVar(value=""),
+                                            fg_color='#3f3f3f')
             self.max_amount_entry.configure(placeholder_text="",
-                                            textvariable=StringVar(value=""))
+                                            textvariable=StringVar(value=""),
+                                            fg_color='#3f3f3f')
             self.min_amount_entry.configure(state="disabled")
             self.max_amount_entry.configure(state="disabled")
         else:
             self.send_all_balance_checkbox.deselect()
-            self.min_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.min_amount_out))
-            self.max_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.max_amount_out))
+            self.min_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.min_amount_out),
+                                            fg_color='#343638')
+            self.max_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.max_amount_out),
+                                            fg_color='#343638')
 
         self.gas_price_entry.configure(textvariable=StringVar(value=self.data.gas_price))
         self.gas_limit_entry.configure(textvariable=StringVar(value=self.data.gas_limit))
@@ -406,10 +412,12 @@ class SwapsModule(customtkinter.CTk):
 
         if self.data.wait_for_receipt is True:
             self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.data.txn_wait_timeout_sec))
+            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.data.txn_wait_timeout_sec),
+                                                       fg_color='#343638')
         else:
             self.wait_for_transaction_checkbox.deselect()
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
         if self.data.test_mode is True:
             self.test_mode_checkbox.select()

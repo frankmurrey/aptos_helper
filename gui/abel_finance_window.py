@@ -44,11 +44,9 @@ class AbleFinanceWindow(customtkinter.CTk):
                                                               values=self._available_coins)
 
         self.min_amount_out_entry = customtkinter.CTkEntry(self.stake_settings_frame,
-                                                           width=140,
-                                                           placeholder_text="10")
+                                                           width=140)
         self.max_amount_out_entry = customtkinter.CTkEntry(self.stake_settings_frame,
-                                                           width=140,
-                                                           placeholder_text="20")
+                                                           width=140)
 
         self.send_all_balance_checkbox = customtkinter.CTkCheckBox(self.stake_settings_frame,
                                                                    text="Send all balance",
@@ -136,7 +134,9 @@ class AbleFinanceWindow(customtkinter.CTk):
         if checkbox_status is True:
             self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       textvariable=StringVar(value=""),
+                                                       fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def _add_claim_button(self):
@@ -262,17 +262,21 @@ class AbleFinanceWindow(customtkinter.CTk):
         if self.mint_data.send_all_balance is True:
             self.send_all_balance_checkbox.select()
             self.min_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color="#3f3f3f")
             self.max_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
-            self.min_amount_out_entry.configure(state="disabled")
+                                                textvariable=StringVar(value=""),
+                                                fg_color="#3f3f3f")
+            self.min_amount_out_entry.configure(state="disabled",)
             self.max_amount_out_entry.configure(state="disabled")
         else:
             self.send_all_balance_checkbox.deselect()
             self.min_amount_out_entry.configure(state="normal",
-                                                textvariable=StringVar(value=self.mint_data.min_amount_out))
+                                                textvariable=StringVar(value=self.mint_data.min_amount_out),
+                                                fg_color="#343638")
             self.max_amount_out_entry.configure(state="normal",
-                                                textvariable=StringVar(value=self.mint_data.max_amount_out))
+                                                textvariable=StringVar(value=self.mint_data.max_amount_out),
+                                                fg_color="#343638")
 
         self.gas_price_entry.configure(textvariable=StringVar(value=self.mint_data.gas_price))
         self.gas_limit_entry.configure(textvariable=StringVar(value=self.mint_data.gas_limit))
@@ -282,10 +286,12 @@ class AbleFinanceWindow(customtkinter.CTk):
 
         if self.mint_data.wait_for_receipt is True:
             self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.mint_data.txn_wait_timeout_sec))
+            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.mint_data.txn_wait_timeout_sec),
+                                                       fg_color="#343638")
         else:
             self.wait_for_transaction_checkbox.deselect()
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       fg_color="#3f3f3f")
             self.transaction_wait_time_entry.configure(state="disabled")
         if self.mint_data.test_mode is True:
             self.test_mode_checkbox.select()

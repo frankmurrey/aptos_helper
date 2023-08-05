@@ -263,7 +263,9 @@ class AptosBridgeModule(customtkinter.CTk):
         if checkbox_status is True:
             self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       textvariable=StringVar(value=""),
+                                                       fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def update_coin_options(self, chain_value):
@@ -278,17 +280,21 @@ class AptosBridgeModule(customtkinter.CTk):
         if self.bridge_data.send_all_balance is True:
             self.send_all_balance_checkbox.select()
             self.min_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color="#3f3f3f")
             self.max_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color="#3f3f3f")
             self.min_amount_out_entry.configure(state="disabled")
             self.max_amount_out_entry.configure(state="disabled")
         else:
             self.send_all_balance_checkbox.deselect()
             self.min_amount_out_entry.configure(state="normal",
-                                                textvariable=StringVar(value=self.bridge_data.min_amount_out))
+                                                textvariable=StringVar(value=self.bridge_data.min_amount_out),
+                                                fg_color="#343638")
             self.max_amount_out_entry.configure(state="normal",
-                                                textvariable=StringVar(value=self.bridge_data.max_amount_out))
+                                                textvariable=StringVar(value=self.bridge_data.max_amount_out),
+                                                fg_color="#343638")
 
         self.gas_price_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_price))
         self.gas_limit_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_limit))
@@ -298,10 +304,12 @@ class AptosBridgeModule(customtkinter.CTk):
 
         if self.bridge_data.wait_for_receipt is True:
             self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.bridge_data.txn_wait_timeout_sec))
+            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.bridge_data.txn_wait_timeout_sec),
+                                                       fg_color="#343638")
         else:
             self.wait_for_transaction_checkbox.deselect()
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="",
+                                                       fg_color="#3f3f3f")
             self.transaction_wait_time_entry.configure(state="disabled")
         if self.bridge_data.test_mode is True:
             self.test_mode_checkbox.select()
