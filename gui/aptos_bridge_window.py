@@ -88,7 +88,8 @@ class AptosBridgeModule(customtkinter.CTk):
 
         self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
                                                                   width=140,
-                                                                  state="disabled")
+                                                                  state="disabled",
+                                                                  fg_color='#3f3f3f')
 
         self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
@@ -116,13 +117,13 @@ class AptosBridgeModule(customtkinter.CTk):
         claim_button_label = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                     text="Claim tokens",
                                                     font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(0, 0), sticky="w")
+        claim_button_label.grid(row=0, column=0, padx=(45, 0), pady=(15, 0), sticky="w")
         claim_button_mark = customtkinter.CTkLabel(self.tabview.tab(self._tab_name),
                                                    text="*",
                                                    text_color="yellow",
                                                    font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=0, column=0, padx=(132, 0), pady=(0, 0), sticky="w")
-        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        claim_button_mark.grid(row=0, column=0, padx=(132, 0), pady=(15, 0), sticky="w")
+        self.claim_button.grid(row=0, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
 
     def _add_dst_chain_combobox(self):
         dst_chain_label = customtkinter.CTkLabel(self.bridge_settings_frame,
@@ -246,21 +247,23 @@ class AptosBridgeModule(customtkinter.CTk):
         checkbox_status = self.send_all_balance_checkbox.get()
         if checkbox_status is True:
             self.min_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color='#3f3f3f')
             self.max_amount_out_entry.configure(placeholder_text="",
-                                                textvariable=StringVar(value=""))
+                                                textvariable=StringVar(value=""),
+                                                fg_color='#3f3f3f')
             self.min_amount_out_entry.configure(state="disabled")
             self.max_amount_out_entry.configure(state="disabled")
         else:
-            self.min_amount_out_entry.configure(state="normal", placeholder_text="10")
-            self.max_amount_out_entry.configure(state="normal", placeholder_text="20")
+            self.min_amount_out_entry.configure(state="normal", placeholder_text="10", fg_color='#343638')
+            self.max_amount_out_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
 
     def wait_for_transaction_checkbox_event(self):
         checkbox_status = self.wait_for_transaction_checkbox.get()
         if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120")
+            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="")
+            self.transaction_wait_time_entry.configure(placeholder_text="", fg_color='#3f3f3f')
             self.transaction_wait_time_entry.configure(state="disabled")
 
     def update_coin_options(self, chain_value):
@@ -282,7 +285,6 @@ class AptosBridgeModule(customtkinter.CTk):
             self.max_amount_out_entry.configure(state="disabled")
         else:
             self.send_all_balance_checkbox.deselect()
-            print(self.bridge_data.min_amount_out)
             self.min_amount_out_entry.configure(state="normal",
                                                 textvariable=StringVar(value=self.bridge_data.min_amount_out))
             self.max_amount_out_entry.configure(state="normal",
@@ -307,18 +309,18 @@ class AptosBridgeModule(customtkinter.CTk):
             self.test_mode_checkbox.deselect()
 
     def get_claim_data_values(self):
-        self.bridge_data.gas_limit = self.gas_limit_entry.get()
-        self.bridge_data.gas_price = self.gas_price_entry.get()
-        self.bridge_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.bridge_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
-        self.bridge_data.test_mode = self.test_mode_checkbox.get()
-        self.bridge_data.min_delay_sec = self.min_delay_entry.get()
-        self.bridge_data.max_delay_sec = self.max_delay_entry.get()
+        self.claim_data.gas_limit = self.gas_limit_entry.get()
+        self.claim_data.gas_price = self.gas_price_entry.get()
+        self.claim_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
+        self.claim_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
+        self.claim_data.test_mode = self.test_mode_checkbox.get()
+        self.claim_data.min_delay_sec = self.min_delay_entry.get()
+        self.claim_data.max_delay_sec = self.max_delay_entry.get()
 
-        return self.bridge_data
+        return self.claim_data
 
     def check_claim_config(self):
-        route_validator = AptosBridgeClaimConfigValidator(self.get_bridge_data_values())
+        route_validator = AptosBridgeClaimConfigValidator(self.get_claim_data_values())
         validation_status = route_validator.check_is_route_valid()
         if validation_status is not True:
             messagebox.showerror("Error", validation_status)
@@ -331,8 +333,8 @@ class AptosBridgeModule(customtkinter.CTk):
         if pre_build_status is not True:
             return
 
-        self.claim_data.gas_limit = self.gas_limit_entry.get()
-        self.claim_data.gas_price = self.gas_price_entry.get()
+        self.claim_data.gas_limit = int(self.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
+        self.claim_data.gas_price = float(self.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
         self.claim_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
         self.claim_data.txn_wait_timeout_sec = float(self.transaction_wait_time_entry.get() if self.claim_data.wait_for_receipt else 0)
         self.claim_data.test_mode = self.test_mode_checkbox.get()
