@@ -36,9 +36,11 @@ def log_all_actions_to_xlsx():
         data["Action Type"].append(action.action_type)
         data["Is Success"].append(action.is_success)
         data["Transaction Hash"].append(action.transaction_hash)
-
-    df = pd.DataFrame(data)
-    df.to_excel(f"{action_storage.get_current_logs_dir()}\\!all_logs.xlsx", index=False)
+    try:
+        df = pd.DataFrame(data)
+        df.to_excel(f"{action_storage.get_current_logs_dir()}\\!all_logs.xlsx", index=False)
+    except Exception as e:
+        logger.error(f"Error while logging all actions to xlsx: {e}")
 
 
 def create_new_logs_dir():
