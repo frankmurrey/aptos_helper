@@ -262,6 +262,8 @@ class AptosBase(CustomRestClient):
             current_proxy = self.proxies.get('http://')
             current_proxy_body = current_proxy.split("://")[1]
 
+        logger.warning(f"Action: {txn_info_message}")
+
         wallet_log = WalletActionSchema(
             wallet_address=str(sender_account.address()),
             date_time=datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
@@ -281,7 +283,7 @@ class AptosBase(CustomRestClient):
         ClientConfig.max_gas_amount = int(int(simulated_raw_transaction_gas_estimate) * 1.1)
 
         if config.test_mode is True:
-            logger.debug(f"Test mode enabled. Skipping transaction: {txn_info_message}")
+            logger.debug(f"Test mode enabled. Skipping transaction")
             return False
 
         signed_transaction = self.create_bcs_signed_transaction(sender=sender_account,
