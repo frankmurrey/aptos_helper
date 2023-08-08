@@ -6,8 +6,11 @@ from datetime import datetime
 from src.schemas.wallet_log import WalletActionSchema
 from src.file_manager import FileManager
 from src.paths import LOGS_DIR
+from src.storage import Storage
 
 from loguru import logger
+
+APP_CONFIG = Storage().get_app_config()
 
 
 def log_all_actions_to_xlsx():
@@ -39,6 +42,9 @@ def log_all_actions_to_xlsx():
 
 
 def create_new_logs_dir():
+    if APP_CONFIG.preserve_logs is False:
+        return
+
     date_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     new_logs_dir = f"{LOGS_DIR}\\log_{date_time}"
     os.mkdir(new_logs_dir)
@@ -114,6 +120,9 @@ class ActionLogger:
                                         data=log)
 
     def log_action(self):
+        if APP_CONFIG.preserve_logs is False:
+            return
+
         self.action_storage.add_action(self.action_data)
         self.save_single_log_to_csv()
         logger.debug(f"Logged and saved wallet action in {self.action_storage.get_current_logs_dir()}")
