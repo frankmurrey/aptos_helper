@@ -1,4 +1,5 @@
 import customtkinter
+import webbrowser
 
 from tkinter import messagebox, filedialog
 
@@ -10,7 +11,7 @@ from gui.delegation_window import DelegationWindow
 from gui.tools_window import ToolsTopLevelWindow
 
 from src.file_manager import FileManager
-from src.storage import WalletsStorage
+from src.storage import Storage
 from src.paths import (DARK_MODE_LOGO_IMG,
                        LIGHT_MODE_LOGO_IMG,
                        TOOLS_LOGO)
@@ -36,7 +37,7 @@ class MainWindow(customtkinter.CTk):
         self.grid_columnconfigure(8, weight=1)
         self.grid_rowconfigure(3, weight=1)
 
-        self.wallets_storage = WalletsStorage()
+        self.wallets_storage = Storage()
         self.wallets_data = self.wallets_storage.get_wallets_data()
 
         if self.wallets_data is None:
@@ -183,11 +184,26 @@ class MainWindow(customtkinter.CTk):
         self.shuffle_wallets_switch.grid(row=7, column=0, padx=(0, 10), pady=(270, 0))
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(0, 55))
+        self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(0, 75))
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame,
                                                                        values=["Light", "Dark", "System"],
                                                                        command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(0, 0))
+        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(0, 20))
+
+        link_font = customtkinter.CTkFont(size=12, underline=True)
+        self.github_button = customtkinter.CTkButton(self.sidebar_frame,
+                                                     text="Github origin",
+                                                     font=link_font,
+                                                     width=140,
+                                                     anchor="c",
+                                                     text_color="grey",
+                                                     fg_color='transparent',
+                                                     hover=False,
+                                                     command=self.open_github)
+        self.github_button.grid(row=9, column=0, padx=20, pady=(40, 0))
+
+    def open_github(self):
+        webbrowser.open("https://github.com/frankmurrey/aptos_drop_helper")
 
     def add_swaps_tabview(self):
         try:
