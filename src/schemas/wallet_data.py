@@ -9,6 +9,7 @@ class ProxyData(BaseModel):
     username: str = None
     password: str = None
     auth: bool = False
+    is_mobile: bool = False
 
 
 class WalletData(BaseModel):
