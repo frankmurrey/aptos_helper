@@ -5,11 +5,13 @@ from tkinter import (messagebox,
                      StringVar,
                      filedialog)
 
+from gui.txn_settings_frame import TxnSettingsFrameBlueprint
+
 from src.schemas.aptos_bridge import (ClaimConfigSchema,
                                       AptosBridgeConfigSchema)
 from src.route_manager import (AptosBridgeRouteValidator,
                                AptosBridgeClaimConfigValidator)
-from src.storage import WalletsStorage
+from src.storage import Storage
 
 from contracts.chains import Chains
 
@@ -25,9 +27,12 @@ class AptosBridgeModule(customtkinter.CTk):
 
         self.tabview = tabview
         self._tab_name = "Aptos Bridge"
+        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame.frame.grid(row=2, column=0, padx=(10, 0), pady=(20, 0), sticky="nsew")
+
         self.bridge_data = AptosBridgeConfigSchema()
         self.claim_data = ClaimConfigSchema()
-        self.wallets_storage = WalletsStorage()
+        self.wallets_storage = Storage()
 
         self.claim_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                     text="+",
@@ -59,37 +64,6 @@ class AptosBridgeModule(customtkinter.CTk):
                                                                    onvalue=True,
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
-
-        self.txn_settings_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
-        self.txn_settings_frame.grid(row=2, column=0, padx=(10, 0), pady=(20, 0), sticky="nsew")
-
-        self.gas_price_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=70,
-                                                      textvariable=StringVar(value="100"))
-
-        self.gas_limit_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=70)
-
-        self.min_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=140,
-                                                      textvariable=StringVar(value="20"))
-
-        self.max_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=140,
-                                                      textvariable=StringVar(value="40"))
-
-        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.txn_settings_frame,
-                                                                       text="Wait for transaction",
-                                                                       checkbox_width=18,
-                                                                       checkbox_height=18,
-                                                                       onvalue=True,
-                                                                       offvalue=False,
-                                                                       command=self.wait_for_transaction_checkbox_event)
-
-        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                                  width=140,
-                                                                  state="disabled",
-                                                                  fg_color='#3f3f3f')
 
         self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
@@ -156,70 +130,6 @@ class AptosBridgeModule(customtkinter.CTk):
     def _add_send_all_balance_checkbox(self):
         self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
-    def _add_gas_price_entry(self):
-        gas_price_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Gas price:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-        gas_price_label.grid(row=6, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                   text="*",
-                                                   text_color="yellow",
-                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=6, column=0, padx=(86, 0), pady=(0, 0), sticky="w")
-        self.gas_price_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-
-    def _add_gas_limit_entry(self):
-        gas_limit_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Gas limit:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-        gas_limit_label.grid(row=6, column=0, padx=(105, 0), pady=(10, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                   text="*",
-                                                   text_color="yellow",
-                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=6, column=0, padx=(169, 0), pady=(0, 0), sticky="w")
-        self.gas_limit_entry.grid(row=7, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
-
-    def _add_min_delay_entry(self):
-        min_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Min delay:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-        min_delay_label.grid(row=8, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                   text="*",
-                                                   text_color="yellow",
-                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=8, column=0, padx=(87, 0), pady=(0, 0), sticky="w")
-        self.min_delay_entry.grid(row=9, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-
-    def _add_max_delay_entry(self):
-        max_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Max delay:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-        max_delay_label.grid(row=8, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                   text="*",
-                                                   text_color="yellow",
-                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=8, column=1, padx=(70, 0), pady=(0, 0), sticky="w")
-        self.max_delay_entry.grid(row=9, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-
-    def _add_transaction_wait_time_entry(self):
-        transaction_wait_time_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                             text="Transaction wait time (sec):",
-                                                             font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        transaction_wait_time_label.grid(row=10, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        claim_button_mark = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                   text="*",
-                                                   text_color="yellow",
-                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
-        claim_button_mark.grid(row=10, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
-        self.transaction_wait_time_entry.grid(row=11, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
-
-    def _add_wait_for_transaction_checkbox(self):
-        self.wait_for_transaction_checkbox.grid(row=12, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
-
     def _add_test_mode_checkbox(self):
         self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(230, 0), sticky="w")
 
@@ -259,14 +169,16 @@ class AptosBridgeModule(customtkinter.CTk):
             self.max_amount_out_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
 
     def wait_for_transaction_checkbox_event(self):
-        checkbox_status = self.wait_for_transaction_checkbox.get()
+        checkbox_status = self.txn_settings_frame.wait_for_transaction_checkbox.get()
         if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
+            self.txn_settings_frame.transaction_wait_time_entry.configure(state="normal",
+                                                                          placeholder_text="120",
+                                                                          fg_color='#343638')
         else:
-            self.transaction_wait_time_entry.configure(placeholder_text="",
-                                                       textvariable=StringVar(value=""),
-                                                       fg_color='#3f3f3f')
-            self.transaction_wait_time_entry.configure(state="disabled")
+            self.txn_settings_frame.transaction_wait_time_entry.configure(placeholder_text="",
+                                                                          textvariable=StringVar(value=""),
+                                                                          fg_color='#3f3f3f')
+            self.txn_settings_frame.transaction_wait_time_entry.configure(state="disabled")
 
     def update_coin_options(self, chain_value):
         current_chain_obj = Chains().get_by_name(chain_value)
@@ -296,34 +208,35 @@ class AptosBridgeModule(customtkinter.CTk):
                                                 textvariable=StringVar(value=self.bridge_data.max_amount_out),
                                                 fg_color="#343638")
 
-        self.gas_price_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_price))
-        self.gas_limit_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_limit))
+        self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_price))
+        self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_limit))
 
-        self.min_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.min_delay_sec))
-        self.max_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.max_delay_sec))
+        self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.min_delay_sec))
+        self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.max_delay_sec))
 
         if self.bridge_data.wait_for_receipt is True:
-            self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.bridge_data.txn_wait_timeout_sec),
-                                                       fg_color="#343638")
+            self.txn_settings_frame.wait_for_transaction_checkbox.select()
+            self.txn_settings_frame.transaction_wait_time_entry.configure(
+                textvariable=StringVar(value=self.bridge_data.txn_wait_timeout_sec),
+                fg_color="#343638")
         else:
-            self.wait_for_transaction_checkbox.deselect()
-            self.transaction_wait_time_entry.configure(placeholder_text="",
-                                                       fg_color="#3f3f3f")
-            self.transaction_wait_time_entry.configure(state="disabled")
+            self.txn_settings_frame.wait_for_transaction_checkbox.deselect()
+            self.txn_settings_frame.transaction_wait_time_entry.configure(placeholder_text="",
+                                                                          fg_color="#3f3f3f")
+            self.txn_settings_frame.transaction_wait_time_entry.configure(state="disabled")
         if self.bridge_data.test_mode is True:
             self.test_mode_checkbox.select()
         else:
             self.test_mode_checkbox.deselect()
 
     def get_claim_data_values(self):
-        self.claim_data.gas_limit = self.gas_limit_entry.get()
-        self.claim_data.gas_price = self.gas_price_entry.get()
-        self.claim_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.claim_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
+        self.claim_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.claim_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
+        self.claim_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
+        self.claim_data.txn_wait_timeout_sec = self.txn_settings_frame.transaction_wait_time_entry.get()
         self.claim_data.test_mode = self.test_mode_checkbox.get()
-        self.claim_data.min_delay_sec = self.min_delay_entry.get()
-        self.claim_data.max_delay_sec = self.max_delay_entry.get()
+        self.claim_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
+        self.claim_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
 
         return self.claim_data
 
@@ -341,13 +254,13 @@ class AptosBridgeModule(customtkinter.CTk):
         if pre_build_status is not True:
             return
 
-        self.claim_data.gas_limit = int(self.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
-        self.claim_data.gas_price = float(self.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
-        self.claim_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.claim_data.txn_wait_timeout_sec = float(self.transaction_wait_time_entry.get() if self.claim_data.wait_for_receipt else 0)
+        self.claim_data.gas_limit = int(self.txn_settings_frame.gas_price_entry.get() if self.txn_settings_frame.gas_price_entry.get().strip(" ") != "" else "")
+        self.claim_data.gas_price = float(self.txn_settings_frame.gas_price_entry.get() if self.txn_settings_frame.gas_price_entry.get()(" ") != "" else "")
+        self.claim_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
+        self.claim_data.txn_wait_timeout_sec = float(self.txn_settings_frame.transaction_wait_time_entry.get() if self.txn_settings_frame.transaction_wait_time_entry.get() else 0)
         self.claim_data.test_mode = self.test_mode_checkbox.get()
-        self.claim_data.min_delay_sec = float(self.min_delay_entry.get() if self.min_delay_entry.get().strip(" ") != "" else "")
-        self.claim_data.max_delay_sec = float(self.max_delay_entry.get() if self.max_delay_entry.get().strip(" ") != "" else "")
+        self.claim_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get() if self.txn_settings_frame.min_delay_entry.get().strip(" ") != "" else "")
+        self.claim_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get() if self.txn_settings_frame.max_delay_entry.get().strip(" ") != "" else "")
 
         return self.claim_data
 
@@ -357,12 +270,12 @@ class AptosBridgeModule(customtkinter.CTk):
         self.bridge_data.min_amount_out = self.min_amount_out_entry.get()
         self.bridge_data.max_amount_out = self.max_amount_out_entry.get()
         self.bridge_data.send_all_balance = self.send_all_balance_checkbox.get()
-        self.bridge_data.gas_price = self.gas_price_entry.get()
-        self.bridge_data.gas_limit = self.gas_limit_entry.get()
-        self.bridge_data.min_delay_sec = self.min_delay_entry.get()
-        self.bridge_data.max_delay_sec = self.max_delay_entry.get()
-        self.bridge_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.bridge_data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
+        self.bridge_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
+        self.bridge_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.bridge_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
+        self.bridge_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
+        self.bridge_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
+        self.bridge_data.txn_wait_timeout_sec = self.txn_settings_frame.transaction_wait_time_entry.get()
         self.bridge_data.test_mode = self.test_mode_checkbox.get()
 
         return self.bridge_data
@@ -386,12 +299,12 @@ class AptosBridgeModule(customtkinter.CTk):
         self.bridge_data.min_amount_out = float(self.min_amount_out_entry.get()) if self.bridge_data.min_amount_out.strip(" ") != "" else ""
         self.bridge_data.max_amount_out = float(self.max_amount_out_entry.get()) if self.bridge_data.max_amount_out.strip(" ") != "" else ""
         self.bridge_data.send_all_balance = self.send_all_balance_checkbox.get()
-        self.bridge_data.gas_price = float(self.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
-        self.bridge_data.gas_limit = int(self.gas_limit_entry.get() if self.bridge_data.gas_limit.strip(" ") != "" else "")
-        self.bridge_data.min_delay_sec = float(self.min_delay_entry.get() if self.bridge_data.min_delay_sec.strip(" ") != "" else "")
-        self.bridge_data.max_delay_sec = float(self.max_delay_entry.get() if self.bridge_data.max_delay_sec.strip(" ") != "" else "")
-        self.bridge_data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
-        self.bridge_data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get() if self.bridge_data.wait_for_receipt else 0)
+        self.bridge_data.gas_price = float(self.txn_settings_frame.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
+        self.bridge_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get() if self.bridge_data.gas_limit.strip(" ") != "" else "")
+        self.bridge_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get() if self.bridge_data.min_delay_sec.strip(" ") != "" else "")
+        self.bridge_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get() if self.bridge_data.max_delay_sec.strip(" ") != "" else "")
+        self.bridge_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
+        self.bridge_data.txn_wait_timeout_sec = int(self.txn_settings_frame.transaction_wait_time_entry.get() if self.bridge_data.wait_for_receipt else 0)
         self.bridge_data.test_mode = self.test_mode_checkbox.get()
 
         return self.bridge_data
@@ -500,12 +413,6 @@ class AptosBridgeModule(customtkinter.CTk):
         self._add_min_amount_out_entry()
         self._add_max_amount_out_entry()
         self._add_send_all_balance_checkbox()
-        self._add_gas_price_entry()
-        self._add_gas_limit_entry()
-        self._add_min_delay_entry()
-        self._add_max_delay_entry()
-        self._add_transaction_wait_time_entry()
-        self._add_wait_for_transaction_checkbox()
         self._add_test_mode_checkbox()
         self._add_claim_button()
         self._add_next_button()

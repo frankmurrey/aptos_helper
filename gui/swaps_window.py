@@ -7,11 +7,13 @@ from tkinter import (messagebox,
                      StringVar,
                      filedialog)
 
+from gui.txn_settings_frame import TxnSettingsFrameBlueprint
+
 from src.schemas.pancake import PancakeConfigSchema
 from src.schemas.liquidity_swap import LiqSwSwapConfigSchema
 
 from src.route_manager import SwapRouteValidator
-from src.storage import WalletsStorage
+from src.storage import Storage
 
 from contracts.tokens import Tokens
 
@@ -25,8 +27,11 @@ class SwapsModule(customtkinter.CTk):
 
         self.tabview = tabview
         self._tab_name = "Swap"
+        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame.frame.grid(row=3, column=0, padx=15, pady=(15, 0), sticky="nsew")
+
         self.data = None
-        self.wallets_storage = WalletsStorage()
+        self.wallets_storage = Storage()
         self.protocol_name = None
 
         self.swap_protocol_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
@@ -70,40 +75,9 @@ class SwapsModule(customtkinter.CTk):
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
 
-        self.txn_settings_frame = customtkinter.CTkFrame(self.tabview.tab(self._tab_name))
-        self.txn_settings_frame.grid(row=3, column=0, padx=15, pady=(15, 0), sticky="nsew")
-
-        self.gas_price_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=70,
-                                                      textvariable=StringVar(value="100"))
-
-        self.gas_limit_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=70)
-
-        self.slippage_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                     width=70,
+        self.slippage_entry = customtkinter.CTkEntry(self.swap_settings_frame,
+                                                     width=140,
                                                      textvariable=StringVar(value="0.5"))
-
-        self.min_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=140,
-                                                      textvariable=StringVar(value="20"))
-
-        self.max_delay_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                      width=140,
-                                                      textvariable=StringVar(value="40"))
-
-        self.wait_for_transaction_checkbox = customtkinter.CTkCheckBox(self.txn_settings_frame,
-                                                                       text="Wait for transaction",
-                                                                       checkbox_width=18,
-                                                                       checkbox_height=18,
-                                                                       onvalue=True,
-                                                                       offvalue=False,
-                                                                       command=self.wait_for_transaction_checkbox_event)
-
-        self.transaction_wait_time_entry = customtkinter.CTkEntry(self.txn_settings_frame,
-                                                                  width=140,
-                                                                  state="disabled",
-                                                                  fg_color='#3f3f3f')
 
         self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
@@ -171,59 +145,16 @@ class SwapsModule(customtkinter.CTk):
     def _add_send_all_balance_checkbox(self):
         self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
-    def _add_gas_price_fields(self):
-        gas_price_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Gas price:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        gas_price_label.grid(row=0, column=0, padx=(20, 0), pady=(10, 0), sticky="w")
-        self.gas_price_entry.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-
-    def _add_gas_limit_fields(self):
-        gas_limit_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Gas limit:",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        gas_limit_label.grid(row=0, column=0, padx=(105, 0), pady=(10, 0), sticky="w")
-        self.gas_limit_entry.grid(row=1, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
-
     def _add_slippage_fields(self):
-        slippage_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                text="Slippage %:",
+        slippage_label = customtkinter.CTkLabel(self.swap_settings_frame,
+                                                text="Slippage (%):",
                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        slippage_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.slippage_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-
-    def _add_min_delay_fields(self):
-        min_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Min delay (sec):",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        min_delay_label.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_delay_entry.grid(row=5, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-
-    def _add_max_delay_fields(self):
-        max_delay_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                 text="Max delay (sec):",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        max_delay_label.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.max_delay_entry.grid(row=5, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-
-    def _add_transaction_wait_time_entry(self):
-        transaction_wait_time_label = customtkinter.CTkLabel(self.txn_settings_frame,
-                                                             text="Transaction wait time (sec):",
-                                                             font=customtkinter.CTkFont(size=12, weight="bold"))
-
-        transaction_wait_time_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.transaction_wait_time_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
-
-    def _add_wait_for_transaction_checkbox(self):
-        self.wait_for_transaction_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        slippage_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.slippage_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(120, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(100, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -315,16 +246,6 @@ class SwapsModule(customtkinter.CTk):
             self.min_amount_entry.configure(state="normal", placeholder_text="10", fg_color='#343638')
             self.max_amount_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
 
-    def wait_for_transaction_checkbox_event(self):
-        checkbox_status = self.wait_for_transaction_checkbox.get()
-        if checkbox_status is True:
-            self.transaction_wait_time_entry.configure(state="normal", placeholder_text="120", fg_color='#343638')
-        else:
-            self.transaction_wait_time_entry.configure(placeholder_text="",
-                                                       textvariable=StringVar(value=""),
-                                                       fg_color='#3f3f3f')
-            self.transaction_wait_time_entry.configure(state="disabled")
-
     def get_random_dst_coin(self):
         current_protocol = self.swap_protocol_combobox.get()
         if current_protocol == "Pancake":
@@ -354,6 +275,7 @@ class SwapsModule(customtkinter.CTk):
             messagebox.showerror("Error", "Swap protocol not selected")
             return
 
+        txn_settings = self.txn_settings_frame.get_values()
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
         self.data.random_dst_coin = self.random_dst_coin_checkbox.get()
         if self.data.random_dst_coin is True:
@@ -363,13 +285,13 @@ class SwapsModule(customtkinter.CTk):
         self.data.min_amount_out = self.min_amount_entry.get()
         self.data.max_amount_out = self.max_amount_entry.get()
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
-        self.data.gas_price = self.gas_price_entry.get()
-        self.data.gas_limit = self.gas_limit_entry.get()
         self.data.slippage = self.slippage_entry.get()
-        self.data.min_delay_sec = self.min_delay_entry.get()
-        self.data.max_delay_sec = self.max_delay_entry.get()
-        self.data.txn_wait_timeout_sec = self.transaction_wait_time_entry.get()
-        self.data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
+        self.data.gas_price = txn_settings["gas_price"]
+        self.data.gas_limit = txn_settings["gas_limit"]
+        self.data.min_delay_sec = txn_settings["min_delay_sec"]
+        self.data.max_delay_sec = txn_settings["max_delay_sec"]
+        self.data.txn_wait_timeout_sec = txn_settings["txn_wait_timeout_sec"]
+        self.data.wait_for_receipt = txn_settings["wait_for_receipt"]
         self.data.test_mode = self.test_mode_checkbox.get()
 
         return self.data
@@ -403,22 +325,24 @@ class SwapsModule(customtkinter.CTk):
             self.max_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.max_amount_out),
                                             fg_color='#343638')
 
-        self.gas_price_entry.configure(textvariable=StringVar(value=self.data.gas_price))
-        self.gas_limit_entry.configure(textvariable=StringVar(value=self.data.gas_limit))
         self.slippage_entry.configure(textvariable=StringVar(value=self.data.slippage))
 
-        self.min_delay_entry.configure(textvariable=StringVar(value=self.data.min_delay_sec))
-        self.max_delay_entry.configure(textvariable=StringVar(value=self.data.max_delay_sec))
+        self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.data.gas_price))
+        self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.data.gas_limit))
+
+        self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.data.min_delay_sec))
+        self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.data.max_delay_sec))
 
         if self.data.wait_for_receipt is True:
-            self.wait_for_transaction_checkbox.select()
-            self.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.data.txn_wait_timeout_sec),
-                                                       fg_color='#343638')
+            self.txn_settings_frame.wait_for_transaction_checkbox.select()
+            self.txn_settings_frame.transaction_wait_time_entry.configure(
+                textvariable=StringVar(value=self.data.txn_wait_timeout_sec),
+                fg_color='#343638')
         else:
-            self.wait_for_transaction_checkbox.deselect()
-            self.transaction_wait_time_entry.configure(placeholder_text="",
-                                                       fg_color='#3f3f3f')
-            self.transaction_wait_time_entry.configure(state="disabled")
+            self.txn_settings_frame.wait_for_transaction_checkbox.deselect()
+            self.txn_settings_frame.transaction_wait_time_entry.configure(placeholder_text="",
+                                                                          fg_color='#3f3f3f')
+            self.txn_settings_frame.transaction_wait_time_entry.configure(state="disabled")
         if self.data.test_mode is True:
             self.test_mode_checkbox.select()
         else:
@@ -446,6 +370,7 @@ class SwapsModule(customtkinter.CTk):
         else:
             messagebox.showerror("Error", "Swap protocol not selected")
             return
+        txn_settings = self.txn_settings_frame.get_values()
 
         self.data.coin_to_swap = self.coin_to_swap_combobox.get()
         self.data.coin_to_receive = self.coin_to_receive_combobox.get()
@@ -453,13 +378,13 @@ class SwapsModule(customtkinter.CTk):
         self.data.min_amount_out = float(self.min_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.max_amount_out = float(self.max_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
-        self.data.gas_price = float(self.gas_price_entry.get())
-        self.data.gas_limit = int(self.gas_limit_entry.get())
         self.data.slippage = float(self.slippage_entry.get())
-        self.data.min_delay_sec = float(self.min_delay_entry.get()) if self.min_delay_entry.get().strip(" ") != "" else ""
-        self.data.max_delay_sec = float(self.max_delay_entry.get()) if self.min_delay_entry.get().strip(" ") != "" else ""
-        self.data.txn_wait_timeout_sec = int(self.transaction_wait_time_entry.get()) if self.wait_for_transaction_checkbox.get() else ""
-        self.data.wait_for_receipt = self.wait_for_transaction_checkbox.get()
+        self.data.gas_price = float(txn_settings["gas_price"])
+        self.data.gas_limit = int(txn_settings["gas_limit"])
+        self.data.min_delay_sec = float(txn_settings['min_delay_sec']) if txn_settings['min_delay_sec'].strip(" ") != "" else ""
+        self.data.max_delay_sec = float(txn_settings['max_delay_sec']) if txn_settings['min_delay_sec'].strip(" ") != "" else ""
+        self.data.txn_wait_timeout_sec = int(txn_settings['txn_wait_timeout_sec']) if txn_settings['txn_wait_timeout_sec'] else ""
+        self.data.wait_for_receipt = txn_settings['wait_for_receipt']
         self.data.test_mode = self.test_mode_checkbox.get()
 
         return self.data
@@ -549,13 +474,7 @@ class SwapsModule(customtkinter.CTk):
         self._add_min_amount_out_fields()
         self._add_max_amount_out_fields()
         self._add_send_all_balance_checkbox()
-        self._add_gas_price_fields()
-        self._add_gas_limit_fields()
         self._add_slippage_fields()
-        self._add_min_delay_fields()
-        self._add_max_delay_fields()
-        self._add_transaction_wait_time_entry()
-        self._add_wait_for_transaction_checkbox()
         self._add_next_button()
         self._add_test_mode_checkbox()
         self._add_save_config_button()

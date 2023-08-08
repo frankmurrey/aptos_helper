@@ -57,11 +57,18 @@ class FileManager:
             return None
 
         try:
+            if proxy_data.startswith('m$'):
+                is_mobile = True
+                proxy_data = proxy_data[2:]
+            else:
+                is_mobile = False
+
             proxy_data = proxy_data.split(":")
             if len(proxy_data) == 2:
                 host, port = proxy_data
                 proxy_data = ProxyData(host=host,
-                                       port=port)
+                                       port=port,
+                                       is_mobile=is_mobile)
 
             elif len(proxy_data) == 4:
                 host, port, username, password = proxy_data
@@ -69,7 +76,8 @@ class FileManager:
                                        port=port,
                                        username=username,
                                        password=password,
-                                       auth=True)
+                                       auth=True,
+                                       is_mobile=is_mobile)
 
             else:
                 proxy_data = None

@@ -12,7 +12,7 @@ class ToolsTopLevelWindow(customtkinter.CTkToplevel):
         self.geometry("400x600")
 
         self.generator_label = customtkinter.CTkLabel(self,
-                                                      text="Generate aptos keys:",
+                                                      text="Generate aptos keys to file:",
                                                       font=customtkinter.CTkFont(size=14, weight="bold"))
         self.generator_label.grid(row=0, column=0, padx=15, pady=10, sticky="w")
 

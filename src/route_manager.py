@@ -165,8 +165,6 @@ class SwapRouteValidator(RouteManagerTransferTypeBase):
         return True
 
     def check_token_pair(self):
-        print(self.config.coin_to_swap)
-        print(self.config.coin_to_receive)
         if self.config.coin_to_swap == self.config.coin_to_receive:
             error_msg = f"'Coin to swap' and 'Coin to receive' should be different"
             return error_msg
