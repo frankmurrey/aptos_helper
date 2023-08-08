@@ -26,6 +26,8 @@ from modules.liquidity_swap.liquidity import Liquidity as LSLiquidity
 from modules.delegation.delegate import Delegate
 from modules.delegation.unlock import Unlock
 
+from src.utils.balance_checker import BalanceChecker, write_balance_data_to_xlsx
+
 from loguru import logger
 from aptos_sdk.account import Account
 
@@ -74,10 +76,17 @@ class ModuleExecutor:
                                                        base_url=self.storage.get_rpc_url())
 
             if self.config.test_mode is True and index == 2:
-                logger.info(f"Test mode enabled, process is finished\n")
+                logger.info(f"Process finished in Test Mode\n")
                 break
 
             if index == wallets_amount - 1:
+                if self.config.module_name == "balance_checker":
+                    data = self.storage.get_wallet_balances()
+                    f_path = self.config.file_path
+                    write_balance_data_to_xlsx(data=data,
+                                               path=f_path,
+                                               coin_option=self.config.coin_option)
+
                 if self.app_config.preserve_logs is True:
                     log_all_actions_to_xlsx()
 
@@ -200,6 +209,22 @@ class ModuleExecutor:
                             proxies=proxies)
             unlock_status = unlock.send_unlock_transaction(private_key=wallet_data.wallet)
             execution_status = unlock_status
+
+        elif self.module_name == "balance_checker":
+            balance_checker = BalanceChecker(base_url=base_url,
+                                             config=self.config,
+                                             proxies=proxies)
+            address = Account.load_key(wallet_data.wallet).address()
+            balance_status = balance_checker.get_balance_decimals(address=address)
+
+            if balance_status is not None:
+                action_status = True
+            else:
+                action_status = False
+
+            self.storage.append_wallet_balance({address.hex(): balance_status})
+
+            execution_status = action_status
 
         return execution_status
 
