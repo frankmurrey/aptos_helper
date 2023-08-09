@@ -56,7 +56,7 @@ class Liquidity(customtkinter.CTk):
 
         self.coin_x_combobox = customtkinter.CTkComboBox(self.add_liquidity_frame,
                                                          values=self._coin_x_options,
-                                                         command=self.update_coin_options)
+                                                         command=self.combobox1_event)
 
         self.coin_y_combobox = customtkinter.CTkComboBox(self.add_liquidity_frame,
                                                          values=self._coin_y_options)
@@ -90,7 +90,7 @@ class Liquidity(customtkinter.CTk):
 
         self.coin_x2_combobox = customtkinter.CTkComboBox(self.remove_liquidity_frame,
                                                           values=self._coin_x_options,
-                                                          command=self.update_coin_options2)
+                                                          command=self.combobox2_event)
 
         self.coin_y2_combobox = customtkinter.CTkComboBox(self.remove_liquidity_frame,
                                                           values=self._coin_y2_options)
@@ -191,6 +191,16 @@ class Liquidity(customtkinter.CTk):
 
         if remove_switch_state:
             self.update_coin_options2()
+
+    def combobox1_event(self, *args):
+        self.coin_x_combobox.configure(values=self._coin_x_options)
+        self.coin_y_combobox.configure(values=self._coin_y_options)
+        self.coin_y_combobox.set(self._coin_y_options[0])
+
+    def combobox2_event(self, *args):
+        self.coin_x2_combobox.configure(values=self._coin_x_options)
+        self.coin_y2_combobox.configure(values=self._coin_y2_options)
+        self.coin_y2_combobox.set(self._coin_y2_options[0])
 
     def update_coin_options(self):
         self.coin_x_combobox.configure(values=self._coin_x_options)
