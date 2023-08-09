@@ -10,8 +10,6 @@ from src.storage import Storage
 
 from loguru import logger
 
-APP_CONFIG = Storage().get_app_config()
-
 
 def log_all_actions_to_xlsx():
     action_storage = ActionStorage()
@@ -44,7 +42,8 @@ def log_all_actions_to_xlsx():
 
 
 def create_new_logs_dir():
-    if APP_CONFIG.preserve_logs is False:
+    app_config = Storage().get_app_config()
+    if app_config.preserve_logs is False:
         return
 
     date_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
@@ -122,7 +121,8 @@ class ActionLogger:
                                         data=log)
 
     def log_action(self):
-        if APP_CONFIG.preserve_logs is False:
+        app_config = Storage().get_app_config()
+        if app_config.preserve_logs is False:
             return
 
         self.action_storage.add_action(self.action_data)
