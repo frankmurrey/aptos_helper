@@ -44,6 +44,9 @@ class Templates:
                 os.mkdir(file_path)
                 logger.debug(f'Created {file_path} directory\n')
 
+        logger.critical('Temp files created, restart me please')
+        exit(1)
+
     def create_tokens_json_file(self, file_path):
         data = TOKENS_DATA
         self.file_manager.write_data_to_json_file(file_path=file_path,
