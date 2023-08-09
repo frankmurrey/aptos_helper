@@ -112,7 +112,7 @@ class FileManager:
                                      evm_pair_address=evm_pair_address,
                                      proxy=proxy_data)
             all_wallets.append(wallet_data)
-        print(all_wallets)
+
         return all_wallets
 
     def get_wallets_from_files(self):
