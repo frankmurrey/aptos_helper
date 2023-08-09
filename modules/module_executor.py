@@ -113,6 +113,9 @@ class ModuleExecutor:
         if proxy_data:
             if proxy_data.is_mobile is True and self.app_config.mobile_proxy_rotation is True:
                 rotation_link = self.app_config.mobile_proxy_rotation_link
+                if not rotation_link:
+                    logger.error(f"Mobile proxy rotation link is not set (go to app_config.json)")
+                    return False
                 rotate_status = proxy_manager.rotate_mobile_proxy(rotation_link)
                 if rotate_status is False:
                     return False
