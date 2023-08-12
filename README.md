@@ -1,9 +1,3 @@
-<div align="center">
-<h3>
-Aptos Helper
-</h3>
-</div
-
 Aptos Helper is a python project with user-friendly interface, which allows you to interact with different aptos onchain projects and protocols using your multi amount of wallets.
 
 <a href="https://ibb.co/RbGVYNM"><img src="https://i.ibb.co/MSy3Zfj/main.png" alt="main" border="0"></a>
