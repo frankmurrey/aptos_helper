@@ -25,6 +25,10 @@ class Tokens:
             logger.error(f"Error while creating token objects: {e}")
             exit(1)
 
+    def update_tokens_data(self):
+        self.all_tokens_data_from_file = FileManager().read_data_from_json_file(TempFiles().TOKENS_JSON_FILE)
+        self.all_tokens = self._get_all_token_objs()
+
     def get_by_name(self, name_query):
         for token in self.all_tokens:
             if token.symbol.lower() == name_query.lower():
