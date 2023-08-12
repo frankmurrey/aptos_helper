@@ -19,7 +19,7 @@ from src.paths import (DARK_MODE_LOGO_IMG,
 from PIL import Image
 
 
-customtkinter.set_appearance_mode("Dark")
+customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
 
@@ -32,7 +32,8 @@ class MainWindow(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Aptos Helper by @frankmurrey")
-        self.geometry(f"{700}x{900}")
+        print()
+        self.geometry(f"{700}x{900}+100+100")
 
         self.grid_columnconfigure(8, weight=1)
         self.grid_rowconfigure(3, weight=1)
@@ -250,17 +251,21 @@ class MainWindow(customtkinter.CTk):
             pass
 
     def add_delegation_tabview(self):
-        self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
-        self.tabview.add("Delegate")
-        self.tabview.tab("Delegate").grid_columnconfigure(0, weight=3)
+        try:
+            self.tabview.grid(row=0, column=1, padx=(20, 0), pady=(0, 0))
+            self.tabview.add("Delegate")
+            self.tabview.tab("Delegate").grid_columnconfigure(0, weight=3)
 
-        delegation = DelegationWindow(tabview=self.tabview)
-        delegation.add_all_fields()
+            delegation = DelegationWindow(tabview=self.tabview)
+            delegation.add_all_fields()
+        except Exception as e:
+            pass
 
     def open_tools_window(self):
         if self.tools_window is None or not self.tools_window.winfo_exists():
             self.tools_window = ToolsTopLevelWindow(self)
             self.tools_window.title("Tools")
+            self.tools_window.geometry("400x900+815+100")
         else:
             self.tools_window.focus()
 

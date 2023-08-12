@@ -7,9 +7,6 @@ from aptos_sdk.transactions import (EntryFunction,
 from aptos_sdk.type_tag import (TypeTag,
                                 StructTag)
 from aptos_sdk.account import Account
-from aptos_rest_client.client import (ResourceNotFound,
-                                      ClientConfig)
-
 from loguru import logger
 
 from modules.base import AptosBase
@@ -173,6 +170,17 @@ class Swap(AptosBase):
 
         txn_info_message = f"Swap (Liquid Swap) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
+
+        is_token_registered_by_wallet = self.is_token_registered_for_address(wallet_address=sender_account.address(),
+                                                                             token_contract=self.coin_to_receive.contract)
+
+        if is_token_registered_by_wallet is False:
+            logger.warning(f"Coin {self.coin_to_receive.symbol.upper()} is not registered on address")
+            reg_status = self.register_coin_for_wallet(sender_account=sender_account,
+                                                       token_obj=self.coin_to_receive,
+                                                       config=self.config)
+            if reg_status is False:
+                return False
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
             config=self.config,

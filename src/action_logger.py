@@ -67,7 +67,7 @@ class ActionStorage:
 
         def __init__(self):
             self.all_actions = []
-            self.current_logs_dir = create_new_logs_dir()
+            self.current_logs_dir = None
 
         def add_action(self, action_data: WalletActionSchema):
             if not self.current_logs_dir:
@@ -107,6 +107,9 @@ class ActionLogger:
                 self.action_data.is_success,
                 self.action_data.transaction_hash,
                 self.action_data.action_type]
+
+    def create_and_set_new_logs_dir(self):
+        self.action_storage.set_current_logs_dir(create_new_logs_dir())
 
     def save_single_log_to_csv(self):
         log = self.build_single_log()

@@ -25,7 +25,8 @@ class DelegationWindow(customtkinter.CTk):
         super().__init__()
         self.tabview = tabview
         self._tab_name = "Delegate"
-        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name),
+                                                            is_common_fields_mark_need=True)
         self.txn_settings_frame.frame.grid(row=5, column=0, padx=20, pady=(0, 10), sticky="nsew")
 
         self.delegate_data = DelegateConfigSchema()
@@ -141,7 +142,7 @@ class DelegationWindow(customtkinter.CTk):
         self.validator_address_displayer_label.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(120, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(160, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=7, column=0, padx=(20, 0), pady=(15, 0), sticky="w")

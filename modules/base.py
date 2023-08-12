@@ -13,6 +13,8 @@ from aptos_rest_client.client import (ResourceNotFound,
 
 from aptos_sdk.account import (Account,
                                AccountAddress)
+from aptos_sdk.type_tag import (TypeTag,
+                                StructTag)
 from aptos_sdk.transactions import (RawTransaction,
                                     TransactionPayload,
                                     EntryFunction)
@@ -154,6 +156,40 @@ class AptosBase(CustomRestClient):
             return None
 
         return token_info["decimals"]
+
+    def is_token_registered_for_address(self,
+                                        wallet_address: AccountAddress,
+                                        token_contract):
+        try:
+            is_registered = self.account_resource(
+                wallet_address,
+                f'0x1::coin::CoinStore<{token_contract}>'
+            )
+
+            return True
+        except ResourceNotFound:
+            return False
+
+    def register_coin_for_wallet(self,
+                                 sender_account: Account,
+                                 token_obj,
+                                 config):
+        payload = EntryFunction.natural(
+            f"0x1::managed_coin",
+            "register",
+            [TypeTag(StructTag.from_str(token_obj.contract))],
+            []
+        )
+        txn_info_message = f"Coin register {token_obj.symbol.upper()} for wallet"
+
+        txn_status = self.simulate_and_send_transfer_type_transaction(
+            config=config,
+            sender_account=sender_account,
+            txn_payload=payload,
+            txn_info_message=txn_info_message
+        )
+
+        return txn_status
 
     def estimate_transaction(self,
                              raw_transaction: RawTransaction,
@@ -299,6 +335,7 @@ class AptosBase(CustomRestClient):
             wallet_log.is_success = txn_receipt
 
             action_logger = ActionLogger(action_data=wallet_log)
+            action_logger.create_and_set_new_logs_dir()
             action_logger.log_action()
 
             if txn_receipt is True:
@@ -314,6 +351,7 @@ class AptosBase(CustomRestClient):
             wallet_log.is_success = None
 
             action_logger = ActionLogger(action_data=wallet_log)
+            action_logger.create_and_set_new_logs_dir()
             action_logger.log_action()
 
             logger.success(f"Transaction sent:"

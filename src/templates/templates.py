@@ -3,7 +3,6 @@ import os
 from src.paths import TempFiles
 from src.file_manager import FileManager
 from src.templates._tokens_template import TOKENS_DATA
-from src.templates._rpc_template import RPC_URLS
 from src.templates._app_config_template import APP_CONFIG
 
 from loguru import logger
@@ -34,9 +33,6 @@ class Templates:
             if file_path.endswith('tokens.json'):
                 self.create_tokens_json_file(file_path=file_path)
 
-            if file_path.endswith('rpc_urls.json'):
-                self.create_rpc_urls_json_file(file_path=file_path)
-
             if file_path.endswith('app_config.json'):
                 self.create_app_config_json_file(file_path=file_path)
 
@@ -49,12 +45,6 @@ class Templates:
 
     def create_tokens_json_file(self, file_path):
         data = TOKENS_DATA
-        self.file_manager.write_data_to_json_file(file_path=file_path,
-                                                  data=data)
-        logger.debug(f'Created {file_path} file')
-
-    def create_rpc_urls_json_file(self, file_path):
-        data = RPC_URLS
         self.file_manager.write_data_to_json_file(file_path=file_path,
                                                   data=data)
         logger.debug(f'Created {file_path} file')

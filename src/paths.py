@@ -22,7 +22,6 @@ TOOLS_LOGO = os.path.join(GUI_IMAGES_DIR, 'tools_logo.png')
 class TempFiles:
     def __init__(self):
         self.TOKENS_JSON_FILE = os.path.join(CONTRACTS_DIR, "tokens.json")
-        self.RPC_URLS_JSON_FILE = os.path.join(CONTRACTS_DIR, "rpc_urls.json")
         self.LOGS_DIR = LOGS_DIR
         self.APP_CONFIG_FILE = APP_CONFIG_FILE
 

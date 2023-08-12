@@ -4,9 +4,11 @@ from tkinter import StringVar
 
 
 class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master,
+                 is_common_fields_mark_need=False):
         super().__init__(master)
 
+        self.is_common_fields_mark_need = is_common_fields_mark_need
         self.frame = customtkinter.CTkFrame(master)
         self.frame.grid(row=3, column=0, padx=15, pady=(15, 0), sticky="nsew")
 
@@ -41,6 +43,13 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.add_all_fields()
 
     def _add_gas_price_fields(self):
+        if self.is_common_fields_mark_need:
+            common_fields_mark_label = customtkinter.CTkLabel(self.frame,
+                                                              text="*",
+                                                              font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                              text_color='yellow')
+            common_fields_mark_label.grid(row=0, column=0, padx=(85, 0), pady=(10, 0), sticky="w")
+
         gas_price_label = customtkinter.CTkLabel(self.frame,
                                                  text="Gas price:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -49,6 +58,13 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.gas_price_entry.grid(row=1, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_gas_limit_fields(self):
+        if self.is_common_fields_mark_need:
+            common_fields_mark_label = customtkinter.CTkLabel(self.frame,
+                                                              text="*",
+                                                              font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                              text_color='yellow')
+            common_fields_mark_label.grid(row=0, column=0, padx=(168, 0), pady=(10, 0), sticky="w")
+
         gas_limit_label = customtkinter.CTkLabel(self.frame,
                                                  text="Gas limit:",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -57,6 +73,13 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.gas_limit_entry.grid(row=1, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
     def _add_min_delay_fields(self):
+        if self.is_common_fields_mark_need:
+            common_fields_mark_label = customtkinter.CTkLabel(self.frame,
+                                                              text="*",
+                                                              font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                              text_color='yellow')
+            common_fields_mark_label.grid(row=2, column=0, padx=(122, 0), pady=(0, 0), sticky="w")
+
         min_delay_label = customtkinter.CTkLabel(self.frame,
                                                  text="Min delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -65,6 +88,12 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.min_delay_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_fields(self):
+        if self.is_common_fields_mark_need:
+            common_fields_mark_label = customtkinter.CTkLabel(self.frame,
+                                                              text="*",
+                                                              font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                              text_color='yellow')
+            common_fields_mark_label.grid(row=2, column=1, padx=(106, 0), pady=(0, 0), sticky="w")
         max_delay_label = customtkinter.CTkLabel(self.frame,
                                                  text="Max delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -73,6 +102,12 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.max_delay_entry.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
+        if self.is_common_fields_mark_need:
+            common_fields_mark_label = customtkinter.CTkLabel(self.frame,
+                                                              text="*",
+                                                              font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                              text_color='yellow')
+            common_fields_mark_label.grid(row=4, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
         transaction_wait_time_label = customtkinter.CTkLabel(self.frame,
                                                              text="Transaction wait time (sec):",
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))

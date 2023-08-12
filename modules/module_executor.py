@@ -60,6 +60,10 @@ class ModuleExecutor:
     def start(self):
         print_config(config=self.config)
 
+        if not self.app_config.aptos_rpc_url:
+            logger.error("Please, set RPC URL in tools window or app_config.json file")
+            return
+
         if self.storage.get_shuffle_wallets() is True:
             wallets = self.wallets
             random.shuffle(wallets)
@@ -73,7 +77,7 @@ class ModuleExecutor:
             logger.info(f"PK - {self.blur_private_key(wallet_data.wallet)}")
 
             execute_status: bool = self.execute_module(wallet_data=wallet_data,
-                                                       base_url=self.storage.get_rpc_url())
+                                                       base_url=self.app_config.aptos_rpc_url)
 
             if self.config.test_mode is True and index == 2:
                 logger.info(f"Process finished in Test Mode\n")

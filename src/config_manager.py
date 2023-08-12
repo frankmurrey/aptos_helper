@@ -42,7 +42,9 @@ def print_config(config):
 
     logger.info(f"Starting in ({delay_seconds}) seconds")
     logger.info("Press 'Ctrl+C' to stop the process\n")
-    logger.debug('Created by: https://github.com/frankmurrey (tg @shnubjack)\n')
+    logger.debug('Created by: https://github.com/frankmurrey (tg - https://t.me/frank_murrey)\n')
+    logger.debug('Github Origin - https://github.com/frankmurrey/aptos_drop_helper\n')
+
     time.sleep(delay_seconds)
 
 
