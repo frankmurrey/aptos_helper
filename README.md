@@ -1,8 +1,8 @@
-<p align="left">
-  <picture>
-    <img src="./gui/images/dark_mode_logo.png">
-  </picture>
-</p>
+<div align="center">
+<h3>
+Aptos Helper
+</h3>
+</div
 
 Aptos Helper is a python project with user-friendly interface, which allows you to interact with different aptos onchain projects and protocols using your multi amount of wallets.
 
