@@ -16,26 +16,17 @@ class Storage:
             self.__app_config = self.__load_app_config()
             self.__wallet_balances = []
 
-            __rpc_url_from_file = FileManager().read_data_from_json_file(TempFiles().RPC_URLS_JSON_FILE)
-            self.__rpc_url = __rpc_url_from_file.get('APTOS') if __rpc_url_from_file else self.DEFAULT_RPC_URL
-
         def set_wallets_data(self, value):
             self.__wallets_data = value
 
         def set_shuffle_wallets(self, value):
             self.__shuffle_wallets = value
 
-        def set_rpc_url(self, value):
-            self.__rpc_url = value
-
         def get_wallets_data(self):
             return self.__wallets_data
 
         def get_shuffle_wallets(self):
             return self.__shuffle_wallets
-
-        def get_rpc_url(self):
-            return self.__rpc_url
 
         def get_app_config(self) -> AppConfigSchema:
             return self.__app_config
@@ -55,6 +46,9 @@ class Storage:
 
         def reset_wallet_balances(self):
             self.__wallet_balances = []
+
+        def update_app_config(self, config: AppConfigSchema):
+            self.__app_config = config
 
     def __new__(cls):
         if not Storage.__instance:
