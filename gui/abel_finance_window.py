@@ -28,7 +28,8 @@ class AbleFinanceWindow(customtkinter.CTk):
 
         self.tabview = tabview
         self._tab_name = "Abel finance"
-        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name),
+                                                            is_common_fields_mark_need=True)
         self.txn_settings_frame.frame.grid(row=3, column=0, padx=15, pady=(15, 0), sticky="nsew")
 
         self.mint_data = AbleMintConfigSchema()
