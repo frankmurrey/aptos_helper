@@ -27,7 +27,8 @@ class AptosBridgeModule(customtkinter.CTk):
 
         self.tabview = tabview
         self._tab_name = "Aptos Bridge"
-        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name))
+        self.txn_settings_frame = TxnSettingsFrameBlueprint(self.tabview.tab(self._tab_name),
+                                                            is_common_fields_mark_need=True)
         self.txn_settings_frame.frame.grid(row=2, column=0, padx=(10, 0), pady=(20, 0), sticky="nsew")
 
         self.bridge_data = AptosBridgeConfigSchema()
