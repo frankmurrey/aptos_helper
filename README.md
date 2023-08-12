@@ -16,5 +16,7 @@ The **official** docs and more info here:
 ## Contacts and help
 
 Official Telegram channel - https://t.me/frank_murrey
+
 Telegram chat - https://t.me/+e0uxgVUZPHo4Mzcy
+
 Personal DM - https://t.me/shnubjack
