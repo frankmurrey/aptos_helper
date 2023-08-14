@@ -145,7 +145,7 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(260, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(230, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=14, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -180,6 +180,10 @@ class AbleFinanceWindow(customtkinter.CTk):
 
         self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.mint_data.gas_price))
         self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.mint_data.gas_limit))
+        if self.mint_data.force_gas_limit is True:
+            self.txn_settings_frame.force_gas_limit_checkbox.select()
+        else:
+            self.txn_settings_frame.force_gas_limit_checkbox.deselect()
 
         self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.mint_data.min_delay_sec))
         self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.mint_data.max_delay_sec))
@@ -204,6 +208,8 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.redeem_data.redeem_all = True
         self.redeem_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.redeem_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.redeem_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
+        self.redeem_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.redeem_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
         self.redeem_data.txn_wait_timeout_sec = self.txn_settings_frame.transaction_wait_time_entry.get()
         self.redeem_data.test_mode = self.test_mode_checkbox.get()
@@ -230,6 +236,8 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.redeem_data.redeem_all = True
         self.redeem_data.gas_price = int(self.txn_settings_frame.gas_price_entry.get())
         self.redeem_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get())
+        self.redeem_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
+        self.redeem_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.redeem_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
         self.redeem_data.txn_wait_timeout_sec = int(self.txn_settings_frame.transaction_wait_time_entry.get() if self.mint_data.wait_for_receipt else 0)
         self.redeem_data.test_mode = self.test_mode_checkbox.get()
@@ -245,6 +253,8 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.mint_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.mint_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.mint_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.mint_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
+        self.mint_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.mint_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.mint_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.mint_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -273,6 +283,7 @@ class AbleFinanceWindow(customtkinter.CTk):
         self.mint_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.mint_data.gas_price = int(self.txn_settings_frame.gas_price_entry.get())
         self.mint_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get())
+        self.mint_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.mint_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get())
         self.mint_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get())
         self.mint_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
