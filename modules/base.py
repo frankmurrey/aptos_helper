@@ -5,7 +5,8 @@ from datetime import datetime
 from contracts.base import Token
 
 from src.schemas.wallet_log import WalletActionSchema
-from src.action_logger import ActionLogger
+from src.action_logger import (ActionLogger,
+                               log_all_actions_to_xlsx)
 
 from aptos_rest_client import CustomRestClient
 from aptos_rest_client.client import (ResourceNotFound,
@@ -224,10 +225,11 @@ class AptosBase(CustomRestClient):
             time.sleep(1)
 
         response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
+        vm_status = response.json().get("vm_status")
         if response.json().get("success") is True:
-            return True
+            return True, vm_status
         else:
-            return False
+            return False, vm_status
 
     def build_raw_transaction(self,
                               sender_account: Account,
@@ -316,7 +318,11 @@ class AptosBase(CustomRestClient):
         if simulated_raw_transaction_gas_estimate is None:
             return False
 
-        ClientConfig.max_gas_amount = int(int(simulated_raw_transaction_gas_estimate) * 1.1)
+        if config.force_gas_limit is True:
+            gas_limit = int(config.gas_limit)
+        else:
+            gas_limit = int(int(simulated_raw_transaction_gas_estimate) * 1.1)
+        ClientConfig.max_gas_amount = gas_limit
 
         if config.test_mode is True:
             logger.debug(f"Test mode enabled. Skipping transaction")
@@ -331,31 +337,32 @@ class AptosBase(CustomRestClient):
                          f" Txn Hash: {tx_hash}")
             txn_receipt = self.wait_for_receipt(txn_hash=tx_hash,
                                                 timeout=config.txn_wait_timeout_sec)
+            txn_status = txn_receipt[0]
+            vm_status = txn_receipt[1]
+
             wallet_log.transaction_hash = tx_hash
-            wallet_log.is_success = txn_receipt
+            wallet_log.is_success = txn_status
 
             action_logger = ActionLogger(action_data=wallet_log)
-            action_logger.create_and_set_new_logs_dir()
             action_logger.log_action()
+            log_all_actions_to_xlsx()
 
-            if txn_receipt is True:
-                logger.success(f"Transaction success:"
-                               f" {txn_info_message}"
+            if txn_status is True:
+                logger.success(f"Transaction success, vm status: {vm_status}."
                                f" Txn Hash: {tx_hash}")
                 return True
-            elif txn_receipt is False:
-                logger.error(f"Transaction failed. Txn Hash: {tx_hash}")
+            elif txn_status is False:
+                logger.error(f"Transaction failed, vm status: {vm_status}. Txn Hash: {tx_hash}")
                 return False
         else:
             wallet_log.transaction_hash = tx_hash
             wallet_log.is_success = None
 
             action_logger = ActionLogger(action_data=wallet_log)
-            action_logger.create_and_set_new_logs_dir()
             action_logger.log_action()
+            log_all_actions_to_xlsx()
 
             logger.success(f"Transaction sent:"
-                           f" {txn_info_message}"
                            f" Txn Hash: {tx_hash}")
             return True
 
