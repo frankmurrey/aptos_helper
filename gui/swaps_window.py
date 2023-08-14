@@ -154,7 +154,7 @@ class SwapsModule(customtkinter.CTk):
         self.slippage_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(100, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(70, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -288,6 +288,7 @@ class SwapsModule(customtkinter.CTk):
         self.data.slippage = self.slippage_entry.get()
         self.data.gas_price = txn_settings["gas_price"]
         self.data.gas_limit = txn_settings["gas_limit"]
+        self.data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.data.min_delay_sec = txn_settings["min_delay_sec"]
         self.data.max_delay_sec = txn_settings["max_delay_sec"]
         self.data.txn_wait_timeout_sec = txn_settings["txn_wait_timeout_sec"]
@@ -329,6 +330,10 @@ class SwapsModule(customtkinter.CTk):
 
         self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.data.gas_price))
         self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.data.gas_limit))
+        if self.data.force_gas_limit is True:
+            self.txn_settings_frame.force_gas_limit_checkbox.select()
+        else:
+            self.txn_settings_frame.force_gas_limit_checkbox.deselect()
 
         self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.data.min_delay_sec))
         self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.data.max_delay_sec))
@@ -381,6 +386,7 @@ class SwapsModule(customtkinter.CTk):
         self.data.slippage = float(self.slippage_entry.get())
         self.data.gas_price = float(txn_settings["gas_price"])
         self.data.gas_limit = int(txn_settings["gas_limit"])
+        self.data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.data.min_delay_sec = float(txn_settings['min_delay_sec']) if txn_settings['min_delay_sec'].strip(" ") != "" else ""
         self.data.max_delay_sec = float(txn_settings['max_delay_sec']) if txn_settings['min_delay_sec'].strip(" ") != "" else ""
         self.data.txn_wait_timeout_sec = int(txn_settings['txn_wait_timeout_sec']) if txn_settings['txn_wait_timeout_sec'] else ""

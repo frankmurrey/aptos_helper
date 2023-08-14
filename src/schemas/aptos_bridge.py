@@ -9,6 +9,7 @@ class ClaimConfigSchema(BaseModel):
     module_name: str = "aptos_bridge_claim"
     gas_limit: Union[int, str] = 0
     gas_price: Union[int, str] = 0
+    force_gas_limit: Union[bool, str] = False
     min_delay_sec: Union[int, str] = 0
     max_delay_sec: Union[int, str] = 0
     test_mode: bool = True

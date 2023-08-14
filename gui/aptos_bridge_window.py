@@ -132,7 +132,7 @@ class AptosBridgeModule(customtkinter.CTk):
         self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(230, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=13, column=0, padx=(20, 0), pady=(200, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=14, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -211,6 +211,10 @@ class AptosBridgeModule(customtkinter.CTk):
 
         self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_price))
         self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.bridge_data.gas_limit))
+        if self.bridge_data.force_gas_limit is True:
+            self.txn_settings_frame.force_gas_limit_checkbox.select()
+        else:
+            self.txn_settings_frame.force_gas_limit_checkbox.deselect()
 
         self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.min_delay_sec))
         self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.bridge_data.max_delay_sec))
@@ -233,6 +237,7 @@ class AptosBridgeModule(customtkinter.CTk):
     def get_claim_data_values(self):
         self.claim_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
         self.claim_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
+        self.claim_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.claim_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
         self.claim_data.txn_wait_timeout_sec = self.txn_settings_frame.transaction_wait_time_entry.get()
         self.claim_data.test_mode = self.test_mode_checkbox.get()
@@ -257,6 +262,7 @@ class AptosBridgeModule(customtkinter.CTk):
 
         self.claim_data.gas_limit = int(self.txn_settings_frame.gas_price_entry.get() if self.txn_settings_frame.gas_price_entry.get().strip(" ") != "" else "")
         self.claim_data.gas_price = float(self.txn_settings_frame.gas_price_entry.get() if self.txn_settings_frame.gas_price_entry.get()(" ") != "" else "")
+        self.claim_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.claim_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
         self.claim_data.txn_wait_timeout_sec = float(self.txn_settings_frame.transaction_wait_time_entry.get() if self.txn_settings_frame.transaction_wait_time_entry.get() else 0)
         self.claim_data.test_mode = self.test_mode_checkbox.get()
@@ -273,6 +279,7 @@ class AptosBridgeModule(customtkinter.CTk):
         self.bridge_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.bridge_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.bridge_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.bridge_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.bridge_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.bridge_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.bridge_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -302,6 +309,7 @@ class AptosBridgeModule(customtkinter.CTk):
         self.bridge_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.bridge_data.gas_price = float(self.txn_settings_frame.gas_price_entry.get() if self.bridge_data.gas_price.strip(" ") != "" else "")
         self.bridge_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get() if self.bridge_data.gas_limit.strip(" ") != "" else "")
+        self.bridge_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.bridge_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get() if self.bridge_data.min_delay_sec.strip(" ") != "" else "")
         self.bridge_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get() if self.bridge_data.max_delay_sec.strip(" ") != "" else "")
         self.bridge_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()

@@ -142,7 +142,7 @@ class DelegationWindow(customtkinter.CTk):
         self.validator_address_displayer_label.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(160, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(125, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=7, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -192,6 +192,7 @@ class DelegationWindow(customtkinter.CTk):
         self.unlock_data.validator_addr = self.validator_address
         self.unlock_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.unlock_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.unlock_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.unlock_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.unlock_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.unlock_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -235,6 +236,7 @@ class DelegationWindow(customtkinter.CTk):
         self.delegate_data.validator_addr = self.validator_address
         self.delegate_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.delegate_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.delegate_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.delegate_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.delegate_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.delegate_data.min_amount_out = self.min_amount_out_entry.get()
@@ -262,6 +264,7 @@ class DelegationWindow(customtkinter.CTk):
         self.delegate_data.validator_addr = self.validator_address
         self.delegate_data.gas_price = int(self.txn_settings_frame.gas_price_entry.get()) if self.txn_settings_frame.gas_price_entry.get().strip(" ") != "" else ""
         self.delegate_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get()) if self.txn_settings_frame.gas_limit_entry.get().strip(" ") != "" else ""
+        self.delegate_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.delegate_data.min_delay_sec = int(self.txn_settings_frame.min_delay_entry.get()) if self.txn_settings_frame.min_delay_entry.get().strip(" ") != "" else ""
         self.delegate_data.max_delay_sec = int(self.txn_settings_frame.max_delay_entry.get()) if self.txn_settings_frame.max_delay_entry.get().strip(" ") != "" else ""
         self.delegate_data.min_amount_out = float(self.min_amount_out_entry.get()) if self.min_amount_out_entry.get().strip(" ") != "" else ""
@@ -296,18 +299,25 @@ class DelegationWindow(customtkinter.CTk):
         self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.delegate_data.gas_price))
         self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.delegate_data.gas_limit))
 
-        self.txn_settings_frame.min_delay_entry.configure(textvariable=StringVar(value=self.delegate_data.min_delay_sec))
-        self.txn_settings_frame.max_delay_entry.configure(textvariable=StringVar(value=self.delegate_data.max_delay_sec))
+        self.txn_settings_frame.min_delay_entry.configure(
+            textvariable=StringVar(value=self.delegate_data.min_delay_sec))
+        self.txn_settings_frame.max_delay_entry.configure(
+            textvariable=StringVar(value=self.delegate_data.max_delay_sec))
+        if self.delegate_data.force_gas_limit is True:
+            self.txn_settings_frame.force_gas_limit_checkbox.select()
+        else:
+            self.txn_settings_frame.force_gas_limit_checkbox.deselect()
 
         if self.delegate_data.wait_for_receipt is True:
             self.txn_settings_frame.wait_for_transaction_checkbox.select()
-            self.txn_settings_frame.transaction_wait_time_entry.configure(textvariable=StringVar(value=self.delegate_data.txn_wait_timeout_sec),
-                                                       fg_color='#343638')
+            self.txn_settings_frame.transaction_wait_time_entry.configure(
+                textvariable=StringVar(value=self.delegate_data.txn_wait_timeout_sec),
+                fg_color='#343638')
         else:
             self.txn_settings_frame.wait_for_transaction_checkbox.deselect()
             self.txn_settings_frame.transaction_wait_time_entry.configure(placeholder_text="")
             self.txn_settings_frame.transaction_wait_time_entry.configure(state="disabled",
-                                                       fg_color='#3f3f3f')
+                                                                          fg_color='#3f3f3f')
         if self.delegate_data.test_mode is True:
             self.test_mode_checkbox.select()
         else:
