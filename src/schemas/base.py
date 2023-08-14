@@ -10,6 +10,7 @@ class TransferBase(BaseModel):
     max_delay_sec: Union[int, str] = 0
     gas_price: Union[int, str] = 0
     gas_limit: Union[int, str] = 0
+    force_gas_limit: Union[bool, str] = False
     wait_for_receipt: Union[bool, str] = False
     txn_wait_timeout_sec: Union[int, str] = 60
     shuffle_wallets: Union[bool, str] = False
