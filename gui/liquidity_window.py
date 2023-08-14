@@ -314,7 +314,7 @@ class Liquidity(customtkinter.CTk):
         self.coin_y2_combobox.grid(row=2, column=1, padx=(0, 20), pady=(0, 20), sticky="w")
 
     def _add_test_mode_checkbox(self):
-        self.test_mode_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(45, 0), sticky="w")
+        self.test_mode_checkbox.grid(row=8, column=0, padx=(20, 0), pady=(25, 0), sticky="w")
 
     def _add_next_button(self):
         self.next_button.grid(row=9, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
@@ -378,6 +378,7 @@ class Liquidity(customtkinter.CTk):
         self.remove_liq_data.coin_y = self.coin_y2_combobox.get()
         self.remove_liq_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.remove_liq_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.remove_liq_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.remove_liq_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.remove_liq_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.remove_liq_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -405,6 +406,7 @@ class Liquidity(customtkinter.CTk):
         self.remove_liq_data.coin_y = self.coin_y2_combobox.get()
         self.remove_liq_data.gas_price = int(self.txn_settings_frame.gas_price_entry.get())
         self.remove_liq_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get())
+        self.remove_liq_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.remove_liq_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get())
         self.remove_liq_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get())
         self.remove_liq_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -423,6 +425,7 @@ class Liquidity(customtkinter.CTk):
         self.add_liq_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.add_liq_data.gas_price = self.txn_settings_frame.gas_price_entry.get()
         self.add_liq_data.gas_limit = self.txn_settings_frame.gas_limit_entry.get()
+        self.add_liq_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.add_liq_data.min_delay_sec = self.txn_settings_frame.min_delay_entry.get()
         self.add_liq_data.max_delay_sec = self.txn_settings_frame.max_delay_entry.get()
         self.add_liq_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
@@ -454,6 +457,7 @@ class Liquidity(customtkinter.CTk):
         self.add_liq_data.send_all_balance = self.send_all_balance_checkbox.get()
         self.add_liq_data.gas_price = int(self.txn_settings_frame.gas_price_entry.get())
         self.add_liq_data.gas_limit = int(self.txn_settings_frame.gas_limit_entry.get())
+        self.add_liq_data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
         self.add_liq_data.min_delay_sec = float(self.txn_settings_frame.min_delay_entry.get())
         self.add_liq_data.max_delay_sec = float(self.txn_settings_frame.max_delay_entry.get())
         self.add_liq_data.wait_for_receipt = self.txn_settings_frame.wait_for_transaction_checkbox.get()
