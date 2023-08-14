@@ -19,6 +19,13 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         self.gas_limit_entry = customtkinter.CTkEntry(self.frame,
                                                       width=70)
 
+        self.force_gas_limit_checkbox = customtkinter.CTkCheckBox(self.frame,
+                                                                  text="Force gas limit",
+                                                                  checkbox_width=18,
+                                                                  checkbox_height=18,
+                                                                  onvalue=True,
+                                                                  offvalue=False)
+
         self.min_delay_entry = customtkinter.CTkEntry(self.frame,
                                                       width=140,
                                                       textvariable=StringVar(value="20"))
@@ -72,20 +79,23 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
         gas_limit_label.grid(row=0, column=0, padx=(105, 0), pady=(10, 0), sticky="w")
         self.gas_limit_entry.grid(row=1, column=0, padx=(105, 0), pady=(0, 0), sticky="w")
 
+    def _add_force_gas_limit_fields(self):
+        self.force_gas_limit_checkbox.grid(row=2, column=0, padx=(20, 0), pady=(5, 5), sticky="w")
+
     def _add_min_delay_fields(self):
         if self.is_common_fields_mark_need:
             common_fields_mark_label = customtkinter.CTkLabel(self.frame,
                                                               text="*",
                                                               font=customtkinter.CTkFont(size=12, weight="bold"),
                                                               text_color='yellow')
-            common_fields_mark_label.grid(row=2, column=0, padx=(122, 0), pady=(0, 0), sticky="w")
+            common_fields_mark_label.grid(row=3, column=0, padx=(122, 0), pady=(0, 0), sticky="w")
 
         min_delay_label = customtkinter.CTkLabel(self.frame,
                                                  text="Min delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        min_delay_label.grid(row=2, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.min_delay_entry.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        min_delay_label.grid(row=3, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.min_delay_entry.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_max_delay_fields(self):
         if self.is_common_fields_mark_need:
@@ -98,8 +108,8 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
                                                  text="Max delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_delay_label.grid(row=2, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
-        self.max_delay_entry.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        max_delay_label.grid(row=3, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
+        self.max_delay_entry.grid(row=4, column=1, padx=(0, 20), pady=(0, 0), sticky="w")
 
     def _add_transaction_wait_time_entry(self):
         if self.is_common_fields_mark_need:
@@ -107,16 +117,16 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
                                                               text="*",
                                                               font=customtkinter.CTkFont(size=12, weight="bold"),
                                                               text_color='yellow')
-            common_fields_mark_label.grid(row=4, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
+            common_fields_mark_label.grid(row=5, column=0, padx=(200, 0), pady=(0, 0), sticky="w")
         transaction_wait_time_label = customtkinter.CTkLabel(self.frame,
                                                              text="Transaction wait time (sec):",
                                                              font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        transaction_wait_time_label.grid(row=4, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.transaction_wait_time_entry.grid(row=5, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        transaction_wait_time_label.grid(row=5, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.transaction_wait_time_entry.grid(row=6, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def _add_wait_for_transaction_checkbox(self):
-        self.wait_for_transaction_checkbox.grid(row=6, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
+        self.wait_for_transaction_checkbox.grid(row=7, column=0, padx=(20, 0), pady=(0, 10), sticky="w")
 
     def wait_for_transaction_checkbox_event(self):
         checkbox_status = self.wait_for_transaction_checkbox.get()
@@ -143,6 +153,7 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
     def add_all_fields(self):
         self._add_gas_price_fields()
         self._add_gas_limit_fields()
+        self._add_force_gas_limit_fields()
         self._add_min_delay_fields()
         self._add_max_delay_fields()
         self._add_transaction_wait_time_entry()
