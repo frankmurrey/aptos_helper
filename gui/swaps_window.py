@@ -308,6 +308,7 @@ class SwapsModule(customtkinter.CTk):
         else:
             self.random_dst_coin_checkbox.deselect()
             self.coin_to_receive_combobox.configure(state="normal")
+            self.coin_to_receive_combobox.set(self.data.coin_to_receive)
 
         if self.data.send_all_balance is True:
             self.send_all_balance_checkbox.select()
