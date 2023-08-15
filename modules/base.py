@@ -226,6 +226,11 @@ class AptosBase(CustomRestClient):
 
         response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
         vm_status = response.json().get("vm_status")
+        if vm_status is None:
+            time.sleep(2)
+            response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
+            vm_status = response.json().get("vm_status")
+
         if response.json().get("success") is True:
             return True, vm_status
         else:
@@ -351,7 +356,7 @@ class AptosBase(CustomRestClient):
                 logger.success(f"Transaction success, vm status: {vm_status}."
                                f" Txn Hash: {tx_hash}")
                 return True
-            elif txn_status is False:
+            else:
                 logger.error(f"Transaction failed, vm status: {vm_status}. Txn Hash: {tx_hash}")
                 return False
         else:
