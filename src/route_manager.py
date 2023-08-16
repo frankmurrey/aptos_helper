@@ -171,6 +171,14 @@ class SwapRouteValidator(RouteManagerTransferTypeBase):
 
         return True
 
+    def check_min_max_if_percent(self):
+        if self.config.send_percent_balance is True:
+            if int(self.config.max_amount_out) > 100:
+                error_msg = f"Max amount out should be less or equal to 100 if 'send_percent_balance' is True"
+                return error_msg
+
+        return True
+
     def check_is_route_valid(self):
         status_token_pair = self.check_token_pair()
         if status_token_pair is not True:
@@ -179,6 +187,10 @@ class SwapRouteValidator(RouteManagerTransferTypeBase):
         base_validation_status = self.validate()
         if base_validation_status is not True:
             return base_validation_status
+
+        percent_validation_status = self.check_min_max_if_percent()
+        if percent_validation_status is not True:
+            return percent_validation_status
 
         status_slippage = self.check_slippage()
         if status_slippage is not True:
