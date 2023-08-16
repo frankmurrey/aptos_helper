@@ -8,7 +8,7 @@ from src.file_manager import FileManager
 from src.config_manager import print_config
 from src.proxy_manager import ProxyManager
 from src.schemas.wallet_data import WalletData
-from src.schemas.wallet_log import WalletActionSchema
+
 from src.storage import Storage
 from src.templates.templates import Templates
 from src.action_logger import (log_all_actions_to_xlsx,
@@ -133,7 +133,8 @@ class ModuleExecutor:
                         logger.error(err_msg)
                         action_logger = ActionLogger(action_data=err_msg)
                         action_logger.log_error(proxy=proxy_body,
-                                                wallet_address=wallet_address)
+                                                wallet_address=wallet_address,
+                                                module_name=self.config.module_name)
                         log_all_actions_to_xlsx()
                         return False
 
@@ -142,7 +143,8 @@ class ModuleExecutor:
                         err_msg = "Mobile proxy rotation failed"
                         action_logger = ActionLogger(action_data=err_msg)
                         action_logger.log_error(proxy=proxy_body,
-                                                wallet_address=wallet_address)
+                                                wallet_address=wallet_address,
+                                                module_name=self.config.module_name)
                         log_all_actions_to_xlsx()
                         return False
 
@@ -152,7 +154,8 @@ class ModuleExecutor:
                     logger.error(err_msg)
                     action_logger = ActionLogger(action_data=err_msg)
                     action_logger.log_error(proxy=proxy_data,
-                                            wallet_address=wallet_address)
+                                            wallet_address=wallet_address,
+                                                module_name=self.config.module_name)
                     log_all_actions_to_xlsx()
                     return False
                 else:
@@ -272,8 +275,9 @@ class ModuleExecutor:
                 current_proxy_body = current_proxy.split("://")[1] if current_proxy else None
 
             action_logger = ActionLogger(error_msg)
-            action_logger.log_error(Account.load_key(wallet_data.wallet).address(),
-                                    current_proxy_body)
+            action_logger.log_error(wallet_address=Account.load_key(wallet_data.wallet).address(),
+                                    proxy=current_proxy_body,
+                                    module_name=self.config.module_name)
             log_all_actions_to_xlsx()
             return False
 
