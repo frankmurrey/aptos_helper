@@ -1,3 +1,4 @@
+import random
 from typing import Union
 
 from aptos_sdk.transactions import (EntryFunction,
@@ -99,6 +100,10 @@ class PancakeSwap(AptosBase):
 
         if self.config.send_all_balance is True:
             amount_out = wallet_token_balance
+
+        elif self.config.send_percent_balance is True:
+            percent = random.randint(self.config.min_amount_out, self.config.max_amount_out) / 100
+            amount_out = int(wallet_token_balance * percent)
 
         elif wallet_token_balance_decimals < self.config.max_amount_out:
             amount_out = self.get_random_amount_out(
