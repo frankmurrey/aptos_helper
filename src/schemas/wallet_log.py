@@ -10,3 +10,4 @@ class WalletActionSchema(BaseModel):
     is_success: Union[bool, None] = None
     transaction_hash: str = None
     action_type: str = None
+    module_name: str = None
