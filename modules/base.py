@@ -227,7 +227,7 @@ class AptosBase(CustomRestClient):
         response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
         vm_status = response.json().get("vm_status")
         if vm_status is None:
-            time.sleep(2)
+            time.sleep(5)
             response = self.client.get(f"{self.base_url}/transactions/by_hash/{txn_hash}")
             vm_status = response.json().get("vm_status")
 
@@ -311,7 +311,8 @@ class AptosBase(CustomRestClient):
             wallet_address=str(sender_account.address()),
             date_time=datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
             action_type=txn_info_message,
-            proxy=current_proxy_body)
+            proxy=current_proxy_body,
+            module_name=config.module_name)
 
         simulated_raw_transaction_gas_estimate = self.prebuild_payload_and_estimate_transaction(
             sender_account=sender_account,

@@ -42,13 +42,18 @@ def log_all_actions_to_xlsx():
         return
 
 
-def create_new_logs_dir():
+def create_new_logs_dir(dir_name_suffix=None):
     app_config = Storage().get_app_config()
     if app_config.preserve_logs is False:
         return
 
     date_time = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-    new_logs_dir = f"{LOGS_DIR}\\log_{date_time}"
+    if dir_name_suffix:
+        dir_name = f"log_{dir_name_suffix}_{date_time}"
+    else:
+        dir_name = f"log_{date_time}"
+
+    new_logs_dir = f"{LOGS_DIR}\\{dir_name}"
     os.mkdir(new_logs_dir)
 
     if not os.path.exists(new_logs_dir):
@@ -72,7 +77,7 @@ class ActionStorage:
 
         def add_action(self, action_data: WalletActionSchema):
             if not self.current_logs_dir:
-                self.current_logs_dir = create_new_logs_dir()
+                self.current_logs_dir = create_new_logs_dir(action_data.module_name)
 
             self.all_actions.append(action_data)
 
@@ -128,6 +133,7 @@ class ActionLogger:
 
     def log_error(self,
                   wallet_address,
+                  module_name,
                   proxy):
         if self.app_config.preserve_logs is False:
             return
@@ -137,7 +143,8 @@ class ActionLogger:
             date_time=datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
             proxy=proxy,
             is_success=False,
-            action_type=self.action_data
+            action_type=self.action_data,
+            module_name=module_name
         )
 
         self.action_storage.add_action(log_body)

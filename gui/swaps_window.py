@@ -75,6 +75,13 @@ class SwapsModule(customtkinter.CTk):
                                                                    offvalue=False,
                                                                    command=self.send_all_balance_checkbox_event)
 
+        self.send_percent_checkbox = customtkinter.CTkCheckBox(self.swap_settings_frame,
+                                                               text="Send % of balance",
+                                                               checkbox_width=18,
+                                                               checkbox_height=18,
+                                                               onvalue=True,
+                                                               offvalue=False)
+
         self.slippage_entry = customtkinter.CTkEntry(self.swap_settings_frame,
                                                      width=140,
                                                      textvariable=StringVar(value="0.5"))
@@ -144,6 +151,9 @@ class SwapsModule(customtkinter.CTk):
 
     def _add_send_all_balance_checkbox(self):
         self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
+
+    def _add_send_percent_checkbox(self):
+        self.send_percent_checkbox.grid(row=5, column=1, padx=(30, 0), pady=(0, 15), sticky="w")
 
     def _add_slippage_fields(self):
         slippage_label = customtkinter.CTkLabel(self.swap_settings_frame,
@@ -242,9 +252,12 @@ class SwapsModule(customtkinter.CTk):
                                             fg_color='#3f3f3f')
             self.min_amount_entry.configure(state="disabled")
             self.max_amount_entry.configure(state="disabled")
+            self.send_percent_checkbox.deselect()
+            self.send_percent_checkbox.configure(state="disabled")
         else:
             self.min_amount_entry.configure(state="normal", placeholder_text="10", fg_color='#343638')
             self.max_amount_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
+            self.send_percent_checkbox.configure(state="normal")
 
     def get_random_dst_coin(self):
         current_protocol = self.swap_protocol_combobox.get()
@@ -285,6 +298,7 @@ class SwapsModule(customtkinter.CTk):
         self.data.min_amount_out = self.min_amount_entry.get()
         self.data.max_amount_out = self.max_amount_entry.get()
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
+        self.data.send_percent_balance = self.send_percent_checkbox.get()
         self.data.slippage = self.slippage_entry.get()
         self.data.gas_price = txn_settings["gas_price"]
         self.data.gas_limit = txn_settings["gas_limit"]
@@ -320,12 +334,18 @@ class SwapsModule(customtkinter.CTk):
                                             fg_color='#3f3f3f')
             self.min_amount_entry.configure(state="disabled")
             self.max_amount_entry.configure(state="disabled")
+            self.send_percent_checkbox.deselect()
+            self.send_percent_checkbox.configure(state="disabled")
         else:
             self.send_all_balance_checkbox.deselect()
             self.min_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.min_amount_out),
                                             fg_color='#343638')
             self.max_amount_entry.configure(state="normal", textvariable=StringVar(value=self.data.max_amount_out),
                                             fg_color='#343638')
+            self.send_percent_checkbox.configure(state="normal")
+
+        if self.data.send_percent_balance is True:
+            self.send_percent_checkbox.select()
 
         self.slippage_entry.configure(textvariable=StringVar(value=self.data.slippage))
 
@@ -384,6 +404,7 @@ class SwapsModule(customtkinter.CTk):
         self.data.min_amount_out = float(self.min_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.max_amount_out = float(self.max_amount_entry.get()) if self.send_all_balance_checkbox.get() is False else ""
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
+        self.data.send_percent_balance = self.send_percent_checkbox.get()
         self.data.slippage = float(self.slippage_entry.get())
         self.data.gas_price = float(txn_settings["gas_price"])
         self.data.gas_limit = int(txn_settings["gas_limit"])
@@ -481,6 +502,7 @@ class SwapsModule(customtkinter.CTk):
         self._add_min_amount_out_fields()
         self._add_max_amount_out_fields()
         self._add_send_all_balance_checkbox()
+        self._add_send_percent_checkbox()
         self._add_slippage_fields()
         self._add_next_button()
         self._add_test_mode_checkbox()
