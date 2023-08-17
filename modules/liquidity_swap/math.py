@@ -141,9 +141,9 @@ def get_coins_out_with_fees_stable(
     coin_in_val_scaled = coin_in * DENOMINATOR
 
     if coin_in_val_scaled % DENOMINATOR != 0:
-        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR + 1) - (coin_in_val_scaled // DENOMINATOR + 1) * fee / 10000
+        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR + 1) - (coin_in_val_scaled // DENOMINATOR + 1) * (fee + 1) / 10000
     else:
-        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR) - (coin_in_val_scaled // DENOMINATOR) * fee / 10000
+        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR) - (coin_in_val_scaled // DENOMINATOR) * (fee + 1) / 10000
 
     return coin_out(coin_in_val_after_fees, scale_in, scale_out, reserve_in, reserve_out)
 
@@ -156,9 +156,9 @@ def get_optimal_liquidity_amount(x_desired: Decimal,
 
 if __name__ == '__main__':
     out_ = get_coins_out_with_fees_stable(
-        coin_in=Decimal(337000000),
-        reserve_in=Decimal(2332323707748),
-        reserve_out=Decimal(1903323601400),
+        coin_in=Decimal(4258861830),
+        reserve_in=Decimal(2337813178194),
+        reserve_out=Decimal(1899882882191),
         scale_in=Decimal(1000000),
         scale_out=Decimal(1000000),
         fee=d(4)
