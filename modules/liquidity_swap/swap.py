@@ -99,14 +99,13 @@ class Swap(AptosBase):
             scale_out=d(pow(10, self.get_token_decimals(token_obj=self.coin_to_receive))),
             fee=d(pool_fee)
         )
-
         return amount_in
 
     def build_transaction_payload(self, sender_account: Account):
         wallet_token_balance = self.get_wallet_token_balance(wallet_address=sender_account.address(),
                                                              token_obj=self.coin_to_swap)
         if wallet_token_balance == 0:
-            logger.error(f"Wallet balance is 0 {self.coin_to_swap.symbol}")
+            logger.error(f"Wallet balance is 0 {self.coin_to_swap.symbol.upper()}")
             return None
 
         wallet_token_balance_decimals = wallet_token_balance * 10 ** self.get_token_decimals(
@@ -152,7 +151,7 @@ class Swap(AptosBase):
 
         payload = EntryFunction.natural(
             f"{self.liq_swap_address}::scripts_v2",
-            "swap_unchecked",
+            "swap",
             [TypeTag(StructTag.from_str(self.coin_to_swap.contract)),
              TypeTag(StructTag.from_str(self.coin_to_receive.contract)),
              TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::Stable"))],
