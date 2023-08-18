@@ -1,3 +1,5 @@
+import random
+
 from typing import Union
 from math import pow
 
@@ -10,7 +12,9 @@ from aptos_sdk.account import Account
 from loguru import logger
 
 from modules.base import AptosBase
-from modules.liquidity_swap.math import get_coins_out_with_fees_stable, d
+from modules.liquidity_swap.math import (get_coins_out_with_fees_stable,
+                                         get_coins_out_with_fees,
+                                         d)
 
 from contracts.tokens import Tokens
 
@@ -34,24 +38,25 @@ class Swap(AptosBase):
 
         self.amount_out_decimals = None
         self.amount_in_decimals = None
+        self.pool_type = None
 
         self.liq_swap_address = self.get_address_from_hex(
                 "0x190d44266241744264b964a37b8f09863167a12d3e70cda39376cfb4e3561e12")
 
-    def get_token_pair_reserve(self) -> Union[dict, None]:
+    def get_token_pair_reserve(self,
+                               pool_type: str) -> Union[dict, None]:
         coin_x = self.coin_to_swap.contract
         coin_y = self.coin_to_receive.contract
 
         resource_acc_address = self.get_address_from_hex(
             "0x05a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948")
         res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
-                      f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::Stable>"
-
+                      f"<{coin_x}, {coin_y}, {self.liq_swap_address}::curves::{pool_type}>"
         resource_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                payload=res_payload)
 
         if resource_data is False:
-            logger.error("Error getting token pair reserve")
+            logger.error(f"Error getting token pair reserve, {pool_type} pool")
             return None
 
         if resource_data is not None:
@@ -66,12 +71,12 @@ class Swap(AptosBase):
             coin_y = self.coin_to_receive.contract
 
             res_payload = f"{self.liq_swap_address}::liquidity_pool::LiquidityPool" \
-                          f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::Stable>"
+                          f"<{coin_y}, {coin_x}, {self.liq_swap_address}::curves::{pool_type}>"
 
             reversed_data = self.get_token_reserve(resource_address=resource_acc_address,
                                                    payload=res_payload)
             if reversed_data is False:
-                logger.error("Error getting token pair reserve")
+                logger.error(f"Error getting token pair reserve, {pool_type} pool")
                 return None
 
             self.resource_data = reversed_data
@@ -80,8 +85,9 @@ class Swap(AptosBase):
 
             return {coin_x: reserve_y, coin_y: reserve_x}
 
-    def get_amount_in(self, amount_out: int):
-        tokens_reserve: dict = self.get_token_pair_reserve()
+    def get_amount_in_stable_pool(self,
+                                  amount_out: int):
+        tokens_reserve: dict = self.get_token_pair_reserve(pool_type="Stable")
         if tokens_reserve is None:
             return None
 
@@ -90,7 +96,9 @@ class Swap(AptosBase):
 
         if reserve_x is None or reserve_y is None:
             return None
+
         pool_fee = int(self.resource_data["data"]["fee"])
+
         amount_in = get_coins_out_with_fees_stable(
             coin_in=d(amount_out),
             reserve_in=d(reserve_x),
@@ -99,11 +107,56 @@ class Swap(AptosBase):
             scale_out=d(pow(10, self.get_token_decimals(token_obj=self.coin_to_receive))),
             fee=d(pool_fee)
         )
+        self.amount_in_decimals = amount_in / 10 ** self.get_token_decimals(token_obj=self.coin_to_receive)
+
         return amount_in
 
-    def build_transaction_payload(self, sender_account: Account):
-        wallet_token_balance = self.get_wallet_token_balance(wallet_address=sender_account.address(),
+    def get_amount_in_uncorrelated_pool(self,
+                                        amount_out: int):
+        tokens_reserve: dict = self.get_token_pair_reserve(pool_type="Uncorrelated")
+
+        if tokens_reserve is None:
+            return None
+
+        reserve_x = int(tokens_reserve[self.coin_to_swap.contract])
+        reserve_y = int(tokens_reserve[self.coin_to_receive.contract])
+
+        if reserve_x is None or reserve_y is None:
+            return None
+
+        pool_fee = int(self.resource_data["data"]["fee"])
+
+        amount_in = get_coins_out_with_fees(coin_in_val=d(amount_out),
+                                            reserve_in=d(reserve_x),
+                                            reserve_out=d(reserve_y),
+                                            fee=d(pool_fee))
+
+        self.amount_in_decimals = amount_in / 10 ** self.get_token_decimals(token_obj=self.coin_to_receive)
+
+        return amount_in
+
+    def get_most_profitable_amount_in_and_set_pool_type(self, amount_out: int):
+        stable_pool_amount_in = self.get_amount_in_stable_pool(amount_out=amount_out)
+
+        if stable_pool_amount_in is None:
+            return None
+
+        uncorrelated_pool_amount_in = self.get_amount_in_uncorrelated_pool(amount_out=amount_out)
+
+        if uncorrelated_pool_amount_in is None:
+            return None
+
+        if stable_pool_amount_in > uncorrelated_pool_amount_in:
+            self.pool_type = "Stable"
+            return stable_pool_amount_in
+
+        self.pool_type = "Uncorrelated"
+        return uncorrelated_pool_amount_in
+
+    def get_amount_out(self, wallet_address):
+        wallet_token_balance = self.get_wallet_token_balance(wallet_address=wallet_address,
                                                              token_obj=self.coin_to_swap)
+
         if wallet_token_balance == 0:
             logger.error(f"Wallet balance is 0 {self.coin_to_swap.symbol.upper()}")
             return None
@@ -113,6 +166,10 @@ class Swap(AptosBase):
 
         if self.config.send_all_balance is True:
             amount_out = wallet_token_balance
+
+        elif self.config.send_percent_balance is True:
+            percent = random.randint(self.config.min_amount_out, self.config.max_amount_out) / 100
+            amount_out = int(wallet_token_balance * percent)
 
         elif wallet_token_balance_decimals < self.config.max_amount_out:
             amount_out = self.get_random_amount_out(
@@ -128,20 +185,22 @@ class Swap(AptosBase):
                 decimals=self.get_token_decimals(token_obj=self.coin_to_swap)
             )
 
-        amount_in = int(self.get_amount_in(amount_out=amount_out))
-
-        if amount_in is None:
-            return None
-
         self.amount_out_decimals = self.get_amount_decimals(amount=amount_out,
                                                             token_obj=self.coin_to_swap)
-        self.amount_in_decimals = self.get_amount_decimals(amount=amount_in,
-                                                           token_obj=self.coin_to_receive)
 
-        wallet_valid_for_swap = self.check_account_balance_before_transaction(amount_out=amount_out,
-                                                                              wallet_address=sender_account.address(),
-                                                                              token_obj=self.coin_to_swap)
-        if wallet_valid_for_swap is False:
+        is_wallet_valid_for_swap = self.check_account_balance_before_transaction(amount_out=amount_out,
+                                                                                 wallet_address=wallet_address,
+                                                                                 token_obj=self.coin_to_swap)
+        if is_wallet_valid_for_swap is False:
+            return None
+
+        return amount_out
+
+    def build_transaction_payload(self, sender_account: Account):
+        amount_out = self.get_amount_out(wallet_address=sender_account.address())
+        amount_in = self.get_most_profitable_amount_in_and_set_pool_type(amount_out=amount_out)
+
+        if amount_in is None or amount_out is None:
             return None
 
         transaction_args = [
@@ -154,7 +213,7 @@ class Swap(AptosBase):
             "swap",
             [TypeTag(StructTag.from_str(self.coin_to_swap.contract)),
              TypeTag(StructTag.from_str(self.coin_to_receive.contract)),
-             TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::Stable"))],
+             TypeTag(StructTag.from_str(f"{self.liq_swap_address}::curves::{self.pool_type}"))],
             transaction_args
         )
 
@@ -167,7 +226,7 @@ class Swap(AptosBase):
         if txn_payload is None:
             return False
 
-        txn_info_message = f"Swap (Liquid Swap) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
+        txn_info_message = f"Swap (Liquid Swap, {self.pool_type} pool) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
                            f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
 
         is_token_registered_by_wallet = self.is_token_registered_for_address(wallet_address=sender_account.address(),
@@ -189,5 +248,3 @@ class Swap(AptosBase):
         )
 
         return txn_status
-
-
