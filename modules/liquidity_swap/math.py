@@ -135,15 +135,15 @@ def get_coins_out_with_fees_stable(
     getcontext().prec = 28  # You can adjust this value based on your requirements
 
     # Define the denominator constant
-    DENOMINATOR = Decimal(10 ** 18)
+    DENOMINATOR = Decimal(10000)
 
     coin_in_val_after_fees = Decimal(0)
     coin_in_val_scaled = coin_in * DENOMINATOR
 
     if coin_in_val_scaled % DENOMINATOR != 0:
-        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR + 1) - (coin_in_val_scaled // DENOMINATOR + 1) * (fee + 1) / 10000
+        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR + 1) - (coin_in_val_scaled // DENOMINATOR + 1) * fee / 10000
     else:
-        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR) - (coin_in_val_scaled // DENOMINATOR) * (fee + 1) / 10000
+        coin_in_val_after_fees = (coin_in_val_scaled // DENOMINATOR) - (coin_in_val_scaled // DENOMINATOR) * fee / 10000
 
     return coin_out(coin_in_val_after_fees, scale_in, scale_out, reserve_in, reserve_out)
 
@@ -154,16 +154,53 @@ def get_optimal_liquidity_amount(x_desired: Decimal,
     return x_desired * y_reserve / x_reserve
 
 
+def _get_coins_out_with_fees(coin_in_val,
+                            reserve_in,
+                            reserve_out,
+                            fee):
+    feePct = fee
+    denominator = Decimal(10000)
+    feeScale = denominator
+
+    feeMultiplier = feeScale - feePct
+    coinInAfterFees = coin_in_val * feeMultiplier
+    newReservesInSize = reserve_in * feeScale + coinInAfterFees
+    return coinInAfterFees * reserve_out // newReservesInSize
+
+
+def get_coins_out_with_fees(coin_in_val,
+                            reserve_in,
+                            reserve_out,
+                            fee):
+    fee_pct = fee + 1
+    denominator = Decimal(10000)
+    fee_scale = denominator
+
+    fee_multiplier = fee_scale - fee_pct
+
+    coin_in_val_after_fees = coin_in_val * fee_multiplier
+    new_reserve_in = (reserve_in * fee_scale) + coin_in_val_after_fees
+
+    return int(coin_in_val_after_fees * reserve_out // new_reserve_in)
+
+
+
 if __name__ == '__main__':
-    out_ = get_coins_out_with_fees_stable(
-        coin_in=Decimal(4258861830),
-        reserve_in=Decimal(2337813178194),
-        reserve_out=Decimal(1899882882191),
-        scale_in=Decimal(1000000),
-        scale_out=Decimal(1000000),
-        fee=d(4)
+    out_uncor = get_coins_out_with_fees(
+        coin_in_val=Decimal(1000000000),
+        reserve_in=Decimal(574779000000),
+        reserve_out=Decimal(33407640000),
+        fee=d(30)
     )
-    print(out_)
+    print(out_uncor)
+    out_ = get_coins_out_with_fees_stable(
+        coin_in=Decimal(100000000),
+        reserve_in=Decimal(33345610000),
+        reserve_out=Decimal(575625000000),
+        scale_in=Decimal(1000000),
+        scale_out=Decimal(100000000),
+        fee=d(5)
+    )
     liq_ = get_optimal_liquidity_amount(
         x_desired=Decimal(180000000),
         x_reserve=Decimal(1899881601400),
