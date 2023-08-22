@@ -328,7 +328,10 @@ class AptosBase(CustomRestClient):
         if config.force_gas_limit is True:
             gas_limit = int(config.gas_limit)
         else:
-            gas_limit = int(int(simulation_status_data) * 1.1)
+            if int(simulation_status_data) <= 200:
+                gas_limit = int(int(simulation_status_data) * 2)
+            else:
+                gas_limit = int(int(simulation_status_data) * 1.15)
         ClientConfig.max_gas_amount = gas_limit
 
         if config.test_mode is True:
