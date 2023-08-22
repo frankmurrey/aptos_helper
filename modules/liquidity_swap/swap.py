@@ -1,4 +1,5 @@
 import random
+import time
 
 from typing import Union
 from math import pow
@@ -20,6 +21,9 @@ from contracts.tokens import Tokens
 
 from src.schemas.liquidity_swap import LiqSwSwapConfigSchema
 
+from src.utils.token_price_alert import TokenPriceAlert
+from src.utils.coingecko_pricer import GeckoPricer
+
 
 class Swap(AptosBase):
     token: Tokens
@@ -30,6 +34,8 @@ class Swap(AptosBase):
         super().__init__(base_url=base_url, proxies=proxies)
         self.token = Tokens()
         self.config = config
+
+        self.gecko_pricer = GeckoPricer(proxies=self.proxies)
 
         self.coin_to_swap = self.token.get_by_name(name_query=self.config.coin_to_swap)
         self.coin_to_receive = self.token.get_by_name(name_query=self.config.coin_to_receive)
@@ -107,7 +113,6 @@ class Swap(AptosBase):
             scale_out=d(pow(10, self.get_token_decimals(token_obj=self.coin_to_receive))),
             fee=d(pool_fee)
         )
-        self.amount_in_decimals = amount_in / 10 ** self.get_token_decimals(token_obj=self.coin_to_receive)
 
         return amount_in
 
@@ -131,12 +136,11 @@ class Swap(AptosBase):
                                             reserve_out=d(reserve_y),
                                             fee=d(pool_fee))
 
-        self.amount_in_decimals = amount_in / 10 ** self.get_token_decimals(token_obj=self.coin_to_receive)
-
         return amount_in
 
     def get_most_profitable_amount_in_and_set_pool_type(self, amount_out: int):
         stable_pool_amount_in = self.get_amount_in_stable_pool(amount_out=amount_out)
+        token_decimals = self.get_token_decimals(token_obj=self.coin_to_receive)
 
         if stable_pool_amount_in is None:
             return None
@@ -148,9 +152,11 @@ class Swap(AptosBase):
 
         if stable_pool_amount_in > uncorrelated_pool_amount_in:
             self.pool_type = "Stable"
+            self.amount_in_decimals = stable_pool_amount_in / 10 ** token_decimals
             return stable_pool_amount_in
 
         self.pool_type = "Uncorrelated"
+        self.amount_in_decimals = uncorrelated_pool_amount_in / 10 ** token_decimals
         return uncorrelated_pool_amount_in
 
     def get_amount_out(self, wallet_address):
@@ -196,12 +202,44 @@ class Swap(AptosBase):
 
         return amount_out
 
+    def check_if_price_valid_for_swap(self):
+        if self.coin_to_swap.gecko_id is None or self.coin_to_receive.gecko_id is None:
+            logger.error("Gecko id not found for coin pair, please provide manually in contracts/tokens.json")
+            return None
+
+        target_price = float(self.amount_in_decimals) / float(self.amount_out_decimals)
+        token_pair_price = self.gecko_pricer.get_simple_price_of_token_pair(x_token_id=self.coin_to_swap.gecko_id,
+                                                                            y_token_id=self.coin_to_receive.gecko_id)
+        if token_pair_price is None:
+            logger.error("Error getting actual token pair price")
+            return None
+
+        actual_price = token_pair_price[self.coin_to_swap.gecko_id] / token_pair_price[
+            self.coin_to_receive.gecko_id]
+        is_price_valid = TokenPriceAlert.is_target_price_valid(target_price=target_price,
+                                                               actual_gecko_price=actual_price,
+                                                               max_price_difference_percent=self.config.max_price_difference)
+        if is_price_valid is False:
+            logger.error(f"Price is not valid for "
+                         f"{self.coin_to_swap.gecko_id.upper()}/{self.coin_to_receive.gecko_id.upper()}, "
+                         f"actual CoinGecko price ({round(actual_price, 5)}) "
+                         f"is better than execution price ({round(target_price, 5)})")
+            return None
+
+        logger.info(f"Price is valid for swap (source: CoinGecko)")
+        return True
+
     def build_transaction_payload(self, sender_account: Account):
         amount_out = self.get_amount_out(wallet_address=sender_account.address())
         amount_in = self.get_most_profitable_amount_in_and_set_pool_type(amount_out=amount_out)
 
         if amount_in is None or amount_out is None:
             return None
+
+        if self.config.compare_with_actual_price is True:
+            is_price_valid = self.check_if_price_valid_for_swap()
+            if is_price_valid is None:
+                return None
 
         transaction_args = [
             TransactionArgument(int(amount_out), Serializer.u64),
@@ -246,5 +284,27 @@ class Swap(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
+
+        incorrect_output_error = 'ERR_COIN_OUT_NUM_LESS_THAN_EXPECTED_MINIMUM'
+        if incorrect_output_error in txn_status_message:
+            logger.warning(f"Price updated, retrying swap (after 3 sec) with fresh amount out")
+            time.sleep(3)
+
+            updated_payload = self.build_transaction_payload(sender_account=sender_account)
+            if updated_payload is None:
+                return False
+
+            txn_info_message = f"Swap (Liquid Swap, {self.pool_type} pool) {self.amount_out_decimals} ({self.coin_to_swap.name}) ->" \
+                               f" {self.amount_in_decimals} ({self.coin_to_receive.name})."
+
+            txn_status = self.simulate_and_send_transfer_type_transaction(
+                config=self.config,
+                sender_account=sender_account,
+                txn_payload=updated_payload,
+                txn_info_message=txn_info_message
+            )
+            txn_status, txn_status_message = txn_status
 
         return txn_status
