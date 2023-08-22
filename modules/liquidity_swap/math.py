@@ -184,15 +184,36 @@ def get_coins_out_with_fees(coin_in_val,
     return int(coin_in_val_after_fees * reserve_out // new_reserve_in)
 
 
+def calc_output_burn_liquidity(reserve_x,
+                               reserve_y,
+                               lp_supply,
+                               to_burn):
+    x_return = to_burn * reserve_x / lp_supply
+    y_return = to_burn * reserve_y / lp_supply
+
+    if x_return == 0 or y_return == 0:
+        return None
+
+    return {
+        'x': x_return,
+        'y': y_return,
+    }
+
 
 if __name__ == '__main__':
+    outp_b_liq = calc_output_burn_liquidity(
+        reserve_x=Decimal(1925882931508),
+        reserve_y=Decimal(2305894823455),
+        lp_supply=Decimal(2108502286080),
+        to_burn=Decimal(111117)
+    )
+    print(outp_b_liq)
     out_uncor = get_coins_out_with_fees(
         coin_in_val=Decimal(1000000000),
         reserve_in=Decimal(574779000000),
         reserve_out=Decimal(33407640000),
         fee=d(30)
     )
-    print(out_uncor)
     out_ = get_coins_out_with_fees_stable(
         coin_in=Decimal(100000000),
         reserve_in=Decimal(33345610000),
