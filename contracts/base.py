@@ -8,7 +8,8 @@ class Token:
                  aptos_bridge_handle: str = None,
                  is_abel_available: bool = False,
                  is_thala_available: bool = False,
-                 is_liquid_swap_available: bool = False):
+                 is_liquid_swap_available: bool = False,
+                 gecko_id: str = None):
 
         self.contract = contract
         self.address, self.prefix, self.name = contract.split("::")
@@ -18,6 +19,7 @@ class Token:
         self.is_abel_available = is_abel_available
         self.is_thala_available = is_thala_available
         self.is_liquid_swap_available = is_liquid_swap_available
+        self.gecko_id = gecko_id
 
 
 class Chain:
