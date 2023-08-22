@@ -148,7 +148,7 @@ class AptosBridge(AptosBase):
 
     def send_transaction(self,
                          private_key: str,
-                         receiver_address: str):
+                         receiver_address: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_transaction_payload(sender_account=sender_account,
                                                      receiver_address=receiver_address)
@@ -165,5 +165,7 @@ class AptosBridge(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status
