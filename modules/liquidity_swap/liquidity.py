@@ -5,8 +5,8 @@ from aptos_sdk.transactions import (EntryFunction,
                                     Serializer)
 from aptos_sdk.type_tag import (TypeTag,
                                 StructTag)
-from aptos_sdk.account import Account
-from aptos_rest_client.client import ClientConfig
+from aptos_sdk.account import (Account,
+                               AccountAddress)
 
 
 from loguru import logger
@@ -16,6 +16,7 @@ from contracts.tokens import Tokens
 
 from modules.liquidity_swap.math import (get_coins_out_with_fees_stable,
                                          get_optimal_liquidity_amount,
+                                         calc_output_burn_liquidity,
                                          d)
 
 from src.schemas.liquidity_swap import LiqSwAddLiquidityConfigSchema
@@ -54,6 +55,7 @@ class Liquidity(AptosBase):
         response = self.client.get(url=url, params=payload)
 
         if response.status_code == 200:
+            print(response.json())
             return response.json()
         else:
             return None
@@ -100,6 +102,16 @@ class Liquidity(AptosBase):
         )
 
         return amount_in
+
+    def get_lp_supply(self,
+                      lp_token_address: str):
+        token_info = self.account_resource(
+            AccountAddress.from_hex("0x05a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948"),
+            f"0x1::coin::CoinInfo<{lp_token_address}>"
+        )
+        lp_supply = token_info.get("data").get("supply").get("vec")[0].get("integer").get("vec")[0].get("value")
+
+        return lp_supply
 
     def build_add_liquidity_transaction_payload(self, sender_account: Account):
         tokens_reserve: dict = self.get_token_pair_reserve()
@@ -182,7 +194,7 @@ class Liquidity(AptosBase):
 
         return payload
 
-    def send_add_liquidity_transaction(self, private_key: str):
+    def send_add_liquidity_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_add_liquidity_transaction_payload(sender_account=sender_account)
 
@@ -202,39 +214,65 @@ class Liquidity(AptosBase):
             txn_info_message=txn_info_message
         )
 
+        txn_status, txn_status_message = txn_status
+
         return txn_status
 
-    def build_remove_liquidity_transaction_payload(self, sender_account: Account):
-        is_tokens_reserve_exists = self.get_token_pair_reserve()
-        if not is_tokens_reserve_exists:
+    def get_amount_out_for_remove_liquidity(self, wallet_address):
+        token_reserve = self.get_token_pair_reserve()
+
+        reserve_x = token_reserve.get(self.coin_x.contract)
+        reserve_y = token_reserve.get(self.coin_y.contract)
+
+        if not reserve_x or not reserve_y:
+            logger.error(f"Error while fetching token reserve")
             return None
 
         lp_addr = f"0x5a97986a9d031c4567e15b797be516910cfcb4156312482efc6a19c0a30c948::lp_coin::LP" \
                   f"<{self.coin_x.contract}, {self.coin_y.contract}, {self.liq_swap_address}::curves::Stable>"
         wallet_lp_balance = self.get_wallet_token_balance(token_contract=lp_addr,
-                                                          wallet_address=sender_account.address())
+                                                          wallet_address=wallet_address)
+        lp_supply = self.get_lp_supply(lp_token_address=lp_addr)
 
         if wallet_lp_balance == 0:
             logger.error(f"Wallet ({self.coin_x.symbol.upper()}-{self.coin_y.symbol.upper()}) lp coin balance is 0")
             return None
 
-        staked_pair_balance = self.get_staked_pair_balance(wallet_address=sender_account.address())
-        if not staked_pair_balance:
-            logger.error(f"Error while fetching staked pair amounts")
+        if not lp_supply:
+            logger.error(f"Error while fetching lp supply")
+            return None
 
-        balance_x = int(staked_pair_balance['x'])
-        balance_y = int(staked_pair_balance['y'])
+        lp_burn_output: dict = calc_output_burn_liquidity(reserve_x=int(reserve_x),
+                                                          reserve_y=int(reserve_y),
+                                                          lp_supply=int(lp_supply),
+                                                          to_burn=int(wallet_lp_balance))
 
-        min_amount_in_x = balance_x - (balance_x * self.config.slippage / 100)
-        min_amount_in_y = balance_y - (balance_y * self.config.slippage / 100)
+        out_x_with_slippage = int(lp_burn_output['x'] - (lp_burn_output['x'] * self.config.slippage / 100))
+        out_y_with_slippage = int(lp_burn_output['y'] - (lp_burn_output['y'] * self.config.slippage / 100))
 
-        self.amount_out_x_decimals = min_amount_in_x / 10 ** self.get_token_decimals(token_obj=self.coin_x)
-        self.amount_out_y_decimals = min_amount_in_y / 10 ** self.get_token_decimals(token_obj=self.coin_y)
+        return {
+            "to_burn": wallet_lp_balance,
+            "amount_out_x": out_x_with_slippage,
+            "amount_out_y": out_y_with_slippage
+        }
+
+    def build_remove_liquidity_transaction_payload(self, sender_account: Account):
+
+        lp_burn_output = self.get_amount_out_for_remove_liquidity(wallet_address=sender_account.address())
+        if not lp_burn_output:
+            return None
+
+        lp_amount_to_burn = lp_burn_output['to_burn']
+        min_amount_x = lp_burn_output['amount_out_x']
+        min_amount_y = lp_burn_output['amount_out_y']
+
+        self.amount_out_x_decimals = min_amount_x / 10 ** self.get_token_decimals(token_obj=self.coin_x)
+        self.amount_out_y_decimals = min_amount_y / 10 ** self.get_token_decimals(token_obj=self.coin_y)
 
         transaction_args = [
-            TransactionArgument(int(wallet_lp_balance), Serializer.u64),
-            TransactionArgument(int(min_amount_in_x), Serializer.u64),
-            TransactionArgument(int(min_amount_in_y), Serializer.u64),
+            TransactionArgument(int(lp_amount_to_burn), Serializer.u64),
+            TransactionArgument(int(min_amount_x), Serializer.u64),
+            TransactionArgument(int(min_amount_y), Serializer.u64),
         ]
 
         payload = EntryFunction.natural(
@@ -248,7 +286,7 @@ class Liquidity(AptosBase):
 
         return payload
 
-    def send_remove_liquidity_transaction(self, private_key: str):
+    def send_remove_liquidity_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_remove_liquidity_transaction_payload(sender_account=sender_account)
 
@@ -265,6 +303,8 @@ class Liquidity(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status
 
