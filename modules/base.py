@@ -274,7 +274,7 @@ class AptosBase(CustomRestClient):
                                                   txn_payload,
                                                   sender_account,
                                                   gas_limit,
-                                                  gas_price):
+                                                  gas_price) -> tuple:
         raw_transaction = self.build_raw_transaction(sender_account=sender_account,
                                                      payload=txn_payload,
                                                      gas_limit=gas_limit,
@@ -289,17 +289,17 @@ class AptosBase(CustomRestClient):
 
         if is_simulation_success is not True:
             logger.error(f"Transaction simulation failed. Status: {simulation_status_data}")
-            return None
+            return None, simulation_status_data
         else:
             logger.success(f"Transaction simulation success, gas used: {simulation_status_data}")
-            return simulation_status_data
+            return True, simulation_status_data
 
     def simulate_and_send_transfer_type_transaction(self,
                                                     config,
                                                     sender_account: Account,
                                                     txn_payload: EntryFunction,
                                                     txn_info_message: str
-                                                    ):
+                                                    ) -> tuple:
         current_proxy_body = None
         if self.proxies:
             current_proxy = self.proxies.get('http://')
@@ -320,19 +320,20 @@ class AptosBase(CustomRestClient):
             gas_limit=int(config.gas_limit),
             gas_price=int(config.gas_price)
         )
+        simulation_status, simulation_status_data = simulated_raw_transaction_gas_estimate
 
-        if simulated_raw_transaction_gas_estimate is None:
-            return False
+        if simulation_status is None:
+            return False, simulation_status_data
 
         if config.force_gas_limit is True:
             gas_limit = int(config.gas_limit)
         else:
-            gas_limit = int(int(simulated_raw_transaction_gas_estimate) * 1.1)
+            gas_limit = int(int(simulation_status_data) * 1.1)
         ClientConfig.max_gas_amount = gas_limit
 
         if config.test_mode is True:
             logger.debug(f"Test mode enabled. Skipping transaction")
-            return False
+            return False, "Test mode"
 
         signed_transaction = self.create_bcs_signed_transaction(sender=sender_account,
                                                                 payload=TransactionPayload(txn_payload))
@@ -356,10 +357,10 @@ class AptosBase(CustomRestClient):
             if txn_status is True:
                 logger.success(f"Transaction success, vm status: {vm_status}."
                                f" Txn Hash: {tx_hash}")
-                return True
+                return True, vm_status
             else:
                 logger.error(f"Transaction failed, vm status: {vm_status}. Txn Hash: {tx_hash}")
-                return False
+                return False, vm_status
         else:
             wallet_log.transaction_hash = tx_hash
             wallet_log.is_success = None
@@ -370,6 +371,6 @@ class AptosBase(CustomRestClient):
 
             logger.success(f"Transaction sent:"
                            f" Txn Hash: {tx_hash}")
-            return True
+            return True, 'Transaction sent'
 
 
