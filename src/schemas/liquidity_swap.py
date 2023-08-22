@@ -11,6 +11,8 @@ class LiqSwSwapConfigSchema(TransferBase):
     send_all_balance: Union[bool, str] = False
     send_percent_balance: Union[bool, str] = False
     slippage: Union[int, float, str] = 0
+    compare_with_actual_price: Union[bool, str] = True
+    max_price_difference: Union[int, str] = 3
 
 
 class LiqSwAddLiquidityConfigSchema(TransferBase):
