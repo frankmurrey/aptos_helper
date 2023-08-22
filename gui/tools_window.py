@@ -144,6 +144,15 @@ class ToolsTopLevelWindow(customtkinter.CTkToplevel):
                                                              placeholder_text="USDT")
         self.add_token_symbol_entry.grid(row=2, column=0, padx=10, pady=(0, 0), sticky="w")
 
+        self.add_token_cg_id_label = customtkinter.CTkLabel(self.tokens_editor_frame,
+                                                            text="CoinGecko id:")
+        self.add_token_cg_id_label.grid(row=1, column=1, padx=10, pady=(10, 0), sticky="w")
+
+        self.add_token_cg_id_entry = customtkinter.CTkEntry(self.tokens_editor_frame,
+                                                            width=70,
+                                                            placeholder_text="tether")
+        self.add_token_cg_id_entry.grid(row=2, column=1, padx=10, pady=(0, 0), sticky="w")
+
         self.input_token_contract_button = customtkinter.CTkButton(self.tokens_editor_frame,
                                                                    text="+",
                                                                    height=20,
@@ -260,13 +269,18 @@ class ToolsTopLevelWindow(customtkinter.CTkToplevel):
             messagebox.showerror("Error", "Please input token contract")
             return
 
+        if not self.add_token_cg_id_entry.get():
+            messagebox.showerror("Error", "Please input CoinGecko token id, or input 0 if not available")
+            return
+
         token = Token(
             symbol=self.add_token_symbol_entry.get().upper(),
             contract=self.token_contract_to_add,
             is_pancake_available=bool(self.is_pancake_available_switch.get()),
             is_abel_available=bool(self.is_abel_available_switch.get()),
             is_thala_available=bool(self.is_thala_available_switch.get()),
-            is_liquid_swap_available=bool(self.is_liquid_swap_available_switch.get())
+            is_liquid_swap_available=bool(self.is_liquid_swap_available_switch.get()),
+            gecko_id=self.add_token_cg_id_entry.get().lower() if self.add_token_cg_id_entry.get() != "0" else None
         )
 
         token_add_status: bool = self.tokens_editor.add_new_token(token)
