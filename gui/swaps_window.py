@@ -86,6 +86,18 @@ class SwapsModule(customtkinter.CTk):
                                                      width=140,
                                                      textvariable=StringVar(value="0.5"))
 
+        self.max_difference_percent_entry = customtkinter.CTkEntry(self.swap_settings_frame,
+                                                                   width=140,
+                                                                   textvariable=StringVar(value="3"))
+        self.compare_with_actual_price_checkbox = customtkinter.CTkCheckBox(self.swap_settings_frame,
+                                                                            text="Compare to Gecko price",
+                                                                            checkbox_width=18,
+                                                                            checkbox_height=18,
+                                                                            onvalue=True,
+                                                                            offvalue=False,
+                                                                            command=self.compare_with_actual_price_checkbox_event)
+        self.compare_with_actual_price_checkbox.select()
+
         self.next_button = customtkinter.CTkButton(self.tabview.tab(self._tab_name),
                                                    text="Start",
                                                    width=140,
@@ -128,11 +140,11 @@ class SwapsModule(customtkinter.CTk):
                                                        text="Coin to receive:",
                                                        font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        coin_to_receive_label.grid(row=0, column=1, padx=(30, 0), pady=(10, 0), sticky="w")
-        self.coin_to_receive_combobox.grid(row=1, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
+        coin_to_receive_label.grid(row=0, column=1, padx=(20, 0), pady=(10, 0), sticky="w")
+        self.coin_to_receive_combobox.grid(row=1, column=1, padx=(20, 0), pady=(0, 0), sticky="w")
 
     def _add_random_dst_coin_checkbox(self):
-        self.random_dst_coin_checkbox.grid(row=2, column=1, padx=(30, 0), pady=(5, 0), sticky="w")
+        self.random_dst_coin_checkbox.grid(row=2, column=1, padx=(20, 0), pady=(5, 0), sticky="w")
 
     def _add_min_amount_out_fields(self):
         min_amount_out_label = customtkinter.CTkLabel(self.swap_settings_frame,
@@ -146,14 +158,14 @@ class SwapsModule(customtkinter.CTk):
                                                   text="Max amount:",
                                                   font=customtkinter.CTkFont(size=12, weight="bold"))
 
-        max_amount_label.grid(row=3, column=1, padx=(30, 0), pady=(0, 0), sticky="w")
-        self.max_amount_entry.grid(row=4, column=1, padx=(30, 0), pady=(0, 5), sticky="w")
+        max_amount_label.grid(row=3, column=1, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.max_amount_entry.grid(row=4, column=1, padx=(20, 0), pady=(0, 5), sticky="w")
 
     def _add_send_all_balance_checkbox(self):
-        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
+        self.send_all_balance_checkbox.grid(row=5, column=0, padx=(20, 0), pady=(0, 5), sticky="w")
 
     def _add_send_percent_checkbox(self):
-        self.send_percent_checkbox.grid(row=5, column=1, padx=(30, 0), pady=(0, 15), sticky="w")
+        self.send_percent_checkbox.grid(row=5, column=1, padx=(20, 0), pady=(0, 5), sticky="w")
 
     def _add_slippage_fields(self):
         slippage_label = customtkinter.CTkLabel(self.swap_settings_frame,
@@ -161,19 +173,30 @@ class SwapsModule(customtkinter.CTk):
                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
 
         slippage_label.grid(row=6, column=0, padx=(20, 0), pady=(0, 0), sticky="w")
-        self.slippage_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 15), sticky="w")
+        self.slippage_entry.grid(row=7, column=0, padx=(20, 0), pady=(0, 5), sticky="w")
+
+    def _add_max_difference_fields(self):
+        max_difference_label = customtkinter.CTkLabel(self.swap_settings_frame,
+                                                      text="Max price difference (%):",
+                                                      font=customtkinter.CTkFont(size=12, weight="bold"))
+
+        max_difference_label.grid(row=6, column=1, padx=(20, 0), pady=(0, 0), sticky="w")
+        self.max_difference_percent_entry.grid(row=7, column=1, padx=(20, 0), pady=(0, 5), sticky="w")
+
+    def _add_compare_price_checkbox(self):
+        self.compare_with_actual_price_checkbox.grid(row=8, column=1, padx=(20, 0), pady=(0, 15), sticky="w")
 
     def _add_test_mode_checkbox(self):
         self.test_mode_checkbox.grid(row=4, column=0, padx=(20, 0), pady=(70, 0), sticky="w")
 
     def _add_next_button(self):
-        self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 0), sticky="w")
+        self.next_button.grid(row=5, column=0, padx=(20, 0), pady=(15, 20), sticky="w")
 
     def _add_save_config_button(self):
-        self.save_config_button.grid(row=5, column=0, padx=(210, 0), pady=(15, 0), sticky="w")
+        self.save_config_button.grid(row=5, column=0, padx=(210, 0), pady=(15, 20), sticky="w")
 
     def _add_load_config_button(self):
-        self.load_config_button.grid(row=5, column=0, padx=(290, 0), pady=(15, 0), sticky="w")
+        self.load_config_button.grid(row=5, column=0, padx=(290, 0), pady=(15, 20), sticky="w")
 
     def get_pancake_available_coin_names(self):
         pancake_coins = Tokens().get_pancake_available_coins()
@@ -259,6 +282,17 @@ class SwapsModule(customtkinter.CTk):
             self.max_amount_entry.configure(state="normal", placeholder_text="20", fg_color='#343638')
             self.send_percent_checkbox.configure(state="normal")
 
+    def compare_with_actual_price_checkbox_event(self):
+        checkbox_status = self.compare_with_actual_price_checkbox.get()
+        if checkbox_status is True:
+            self.max_difference_percent_entry.configure(state="normal",
+                                                        textvariable=StringVar(value="3"),
+                                                        fg_color='#343638')
+        else:
+            self.max_difference_percent_entry.configure(state="disabled",
+                                                        textvariable=StringVar(value=""),
+                                                        fg_color='#3f3f3f')
+
     def get_random_dst_coin(self):
         current_protocol = self.swap_protocol_combobox.get()
         if current_protocol == "Pancake":
@@ -300,6 +334,8 @@ class SwapsModule(customtkinter.CTk):
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
         self.data.send_percent_balance = self.send_percent_checkbox.get()
         self.data.slippage = self.slippage_entry.get()
+        self.data.max_price_difference = self.max_difference_percent_entry.get()
+        self.data.compare_with_actual_price = self.compare_with_actual_price_checkbox.get()
         self.data.gas_price = txn_settings["gas_price"]
         self.data.gas_limit = txn_settings["gas_limit"]
         self.data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
@@ -348,6 +384,17 @@ class SwapsModule(customtkinter.CTk):
             self.send_percent_checkbox.select()
 
         self.slippage_entry.configure(textvariable=StringVar(value=self.data.slippage))
+
+        if self.data.compare_with_actual_price is True:
+            self.compare_with_actual_price_checkbox.select()
+            self.max_difference_percent_entry.configure(state="normal",
+                                                        textvariable=StringVar(value=self.data.max_price_difference),
+                                                        fg_color='#343638')
+        else:
+            self.compare_with_actual_price_checkbox.deselect()
+            self.max_difference_percent_entry.configure(state="disabled",
+                                                        textvariable=StringVar(value=""),
+                                                        fg_color='#3f3f3f')
 
         self.txn_settings_frame.gas_price_entry.configure(textvariable=StringVar(value=self.data.gas_price))
         self.txn_settings_frame.gas_limit_entry.configure(textvariable=StringVar(value=self.data.gas_limit))
@@ -406,6 +453,8 @@ class SwapsModule(customtkinter.CTk):
         self.data.send_all_balance = self.send_all_balance_checkbox.get()
         self.data.send_percent_balance = self.send_percent_checkbox.get()
         self.data.slippage = float(self.slippage_entry.get())
+        self.data.compare_with_actual_price = self.compare_with_actual_price_checkbox.get()
+        self.data.max_price_difference = float(self.max_difference_percent_entry.get()) if self.compare_with_actual_price_checkbox.get() is True else ""
         self.data.gas_price = float(txn_settings["gas_price"])
         self.data.gas_limit = int(txn_settings["gas_limit"])
         self.data.force_gas_limit = self.txn_settings_frame.force_gas_limit_checkbox.get()
@@ -504,6 +553,8 @@ class SwapsModule(customtkinter.CTk):
         self._add_send_all_balance_checkbox()
         self._add_send_percent_checkbox()
         self._add_slippage_fields()
+        self._add_max_difference_fields()
+        self._add_compare_price_checkbox()
         self._add_next_button()
         self._add_test_mode_checkbox()
         self._add_save_config_button()

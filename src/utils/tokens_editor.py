@@ -18,7 +18,8 @@ class TokensEditor:
                 "is_pancake_available": token.is_pancake_available,
                 "is_abel_available": token.is_abel_available,
                 "is_thala_available": token.is_thala_available,
-                "is_liquid_swap_available": token.is_liquid_swap_available
+                "is_liquid_swap_available": token.is_liquid_swap_available,
+                'gecko_id': token.gecko_id
 
             }
             self.tokens_json_data.append(token_data)

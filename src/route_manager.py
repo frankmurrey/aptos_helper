@@ -179,6 +179,27 @@ class SwapRouteValidator(RouteManagerTransferTypeBase):
 
         return True
 
+    def check_compare_price_fields(self):
+        if self.config.compare_with_actual_price is True:
+            price_to_compare = self.config.max_price_difference
+            if not price_to_compare:
+                error_msg = f"Maximum price difference should be specified"
+                return error_msg
+
+            if not self.is_valid_float(price_to_compare):
+                error_msg = f"Maximum price difference should be a number (float)"
+                return error_msg
+
+            if not self.is_positive(float(price_to_compare)):
+                error_msg = f"Maximum price difference should be positive"
+                return error_msg
+
+            if float(price_to_compare) > 100:
+                error_msg = f"Maximum price difference should be in range 0-100 (%)"
+                return error_msg
+
+        return True
+
     def check_is_route_valid(self):
         status_token_pair = self.check_token_pair()
         if status_token_pair is not True:
@@ -195,6 +216,10 @@ class SwapRouteValidator(RouteManagerTransferTypeBase):
         status_slippage = self.check_slippage()
         if status_slippage is not True:
             return status_slippage
+
+        status_compare_price_fields = self.check_compare_price_fields()
+        if status_compare_price_fields is not True:
+            return status_compare_price_fields
 
         return True
 

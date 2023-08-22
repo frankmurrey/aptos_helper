@@ -68,7 +68,7 @@ class BridgedTokenClaimer(AptosBase):
 
     def claim(self,
               sender_account: Account,
-              token_contract: Token):
+              token_contract: Token) -> bool:
         txn_payload = self.build_claim_txn_payload(token_contract=token_contract)
         if not txn_payload:
             return False
@@ -81,6 +81,9 @@ class BridgedTokenClaimer(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
+
         return txn_status
 
     def claim_batch(self, private_key: str):

@@ -379,7 +379,7 @@ class Thala(AptosBase):
 
         return payload
 
-    def send_remove_liquidity_transaction(self, private_key: str):
+    def send_remove_liquidity_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_remove_liquidity_transaction_payload(sender_account=sender_account)
 
@@ -395,8 +395,9 @@ class Thala(AptosBase):
             txn_info_message=txn_info_message
         )
 
-        return txn_status
+        txn_status, txn_status_message = txn_status
 
+        return txn_status
 
     def build_stake_lp_transaction_payload(self,
                                            sender_account: Account,
@@ -448,7 +449,7 @@ class Thala(AptosBase):
         return payload
 
     def send_stake_lp_transaction(self,
-                                  private_key: str):
+                                  private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_stake_lp_transaction_payload(sender_account=sender_account)
 
@@ -463,5 +464,7 @@ class Thala(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status

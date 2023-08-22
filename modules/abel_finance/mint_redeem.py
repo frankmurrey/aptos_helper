@@ -92,7 +92,7 @@ class AbleFinance(AptosBase):
 
         return payload
 
-    def send_redeem_transaction(self, private_key: str):
+    def send_redeem_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_redeem_transaction_payload(sender_account=sender_account)
 
@@ -107,6 +107,8 @@ class AbleFinance(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status
 
@@ -156,7 +158,7 @@ class AbleFinance(AptosBase):
 
         return payload
 
-    def send_mint_transaction(self, private_key: str):
+    def send_mint_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_mint_transaction_payload(sender_account=sender_account)
 
@@ -171,5 +173,7 @@ class AbleFinance(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status
