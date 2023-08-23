@@ -252,7 +252,7 @@ class Thala(AptosBase):
             logger.error(f"Error while building transaction payload: {e}")
             return None
 
-    def send_add_liquidity_transaction(self, private_key: str):
+    def send_add_liquidity_transaction(self, private_key: str) -> bool:
         sender_account = self.get_account(private_key=private_key)
         txn_payload = self.build_add_liquidity_transaction_payload(sender_account=sender_account)
 
@@ -268,6 +268,8 @@ class Thala(AptosBase):
             txn_payload=txn_payload,
             txn_info_message=txn_info_message
         )
+
+        txn_status, txn_status_message = txn_status
 
         return txn_status
 
