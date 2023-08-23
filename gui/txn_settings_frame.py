@@ -103,7 +103,7 @@ class TxnSettingsFrameBlueprint(customtkinter.CTkFrame):
                                                               text="*",
                                                               font=customtkinter.CTkFont(size=12, weight="bold"),
                                                               text_color='yellow')
-            common_fields_mark_label.grid(row=2, column=1, padx=(106, 0), pady=(0, 0), sticky="w")
+            common_fields_mark_label.grid(row=3, column=1, padx=(106, 0), pady=(0, 0), sticky="w")
         max_delay_label = customtkinter.CTkLabel(self.frame,
                                                  text="Max delay (sec):",
                                                  font=customtkinter.CTkFont(size=12, weight="bold"))
