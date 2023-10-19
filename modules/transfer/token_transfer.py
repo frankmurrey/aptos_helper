@@ -57,6 +57,10 @@ class TokenTransfer(ModuleBase):
     ) -> Union[int, None]:
         initial_balance_x_decimals = self.initial_balance_x_wei / 10 ** self.token_x_decimals
 
+        if initial_balance_x_decimals == 0:
+            logger.error(f"Wallet {coin_x.symbol.upper()} balance is 0")
+            return None
+
         if self.task.use_all_balance:
             amount_out_wei = self.initial_balance_x_wei
 
@@ -73,7 +77,7 @@ class TokenTransfer(ModuleBase):
             )
             return None
 
-        elif initial_balance_x_decimals > self.task.max_amount_out:
+        elif initial_balance_x_decimals < self.task.max_amount_out:
             amount_out_wei = self.get_random_amount_out_of_token(
                 min_amount=self.task.min_amount_out,
                 max_amount=initial_balance_x_decimals,
@@ -99,15 +103,17 @@ class TokenTransfer(ModuleBase):
             return None
 
         address = self.get_address_from_hex(self.recipient_address)
-        is_coin_registered = self.is_token_registered_for_address(
-            wallet_address=address,
-            token_contract=self.coin_x.contract_address
-        )
-        if not is_coin_registered:
-            logger.error(
-                f"Coin {self.coin_x.symbol.upper()} is not registered for recipient: {self.recipient_address}"
+
+        if self.coin_x.symbol.lower() != "aptos":
+            is_coin_registered = self.is_token_registered_for_address(
+                wallet_address=address,
+                token_contract=self.coin_x.contract_address
             )
-            return None
+            if not is_coin_registered:
+                logger.error(
+                    f"Coin {self.coin_x.symbol.upper()} is not registered for recipient: {self.recipient_address}"
+                )
+                return None
 
         amount_out_wei = self.calculate_amount_out_from_balance(self.coin_x)
 
