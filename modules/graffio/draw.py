@@ -7,7 +7,7 @@ from aptos_sdk.account import Account, AccountAddress
 from loguru import logger
 
 from modules.base import ModuleBase
-from modules.graffio.math import get_random_letter, get_random_coord
+from modules.graffio.math import get_random_coord
 from src import enums
 from src.schemas.canvas_config import CanvasConfig
 
