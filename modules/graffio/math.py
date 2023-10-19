@@ -15,7 +15,3 @@ def get_random_coord(max_pixels: int) -> tuple:
     return list(x), list(y)
 
 
-if __name__ == '__main__':
-    x, y = get_random_letter(100)
-    print(x, y)
-
