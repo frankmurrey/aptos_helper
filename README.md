@@ -21,7 +21,7 @@ The **official** docs and guide info here:
 
 [Telegram chat](https://t.me/+e0uxgVUZPHo4Mzcy)
 
-[Personal DM](https://t.me/shnubjack)
+[Personal DM](https://t.me/frankmurrey)
 
 ## Support
 
