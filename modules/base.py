@@ -11,6 +11,7 @@ from aptos_sdk.transactions import TransactionPayload
 from aptos_sdk.transactions import EntryFunction
 from aptos_sdk.async_client import ClientConfig
 from aptos_sdk.client import ResourceNotFound
+from aptos_sdk.client import ApiError
 from loguru import logger
 
 from contracts.base import TokenBase
@@ -429,6 +430,14 @@ class ModuleBase:
             logger.error(f"Failed to send txn after {retries} attempts")
             return result
 
+    def submit_bcs_transaction(self, signed_transaction):
+        try:
+            tx_hash = self.client.submit_bcs_transaction(signed_transaction)
+            return tx_hash
+        except ApiError as e:
+            logger.error(f"ApiError: {e}")
+            return None
+
     def simulate_and_send_transfer_type_transaction(
             self,
             account: Account,
@@ -469,7 +478,7 @@ class ModuleBase:
             else:
                 gas_limit = int(int(simulation_status.gas_used) * 1.15)
 
-        ClientConfig.max_gas_amount = gas_limit
+        self.client.client_config.max_gas_amount = gas_limit
 
         if self.task.test_mode is True:
             logger.info(f"Test mode enabled. Skipping transaction")
@@ -479,7 +488,13 @@ class ModuleBase:
             sender=account,
             payload=TransactionPayload(txn_payload)
         )
-        tx_hash = self.client.submit_bcs_transaction(signed_transaction)
+        tx_hash = self.submit_bcs_transaction(signed_transaction=signed_transaction)
+        if tx_hash is None:
+            err_msg = f"Transaction submission failed"
+            logger.error(err_msg)
+            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.FAILED.value
+            self.module_execution_result.execution_info = err_msg
+            return self.module_execution_result
 
         if self.task.wait_for_receipt is True:
             logger.info(
