@@ -509,9 +509,13 @@ class ButtonActionsFrame(customtkinter.CTkFrame):
         )
 
     def add_action_button_event(self):
+        geometry = "500x950+1505+100"
+        if self.winfo_screenwidth() <= 1600:
+            geometry = "500x950+1000+100"
+
         if self.actions_top_level_window is None or not self.actions_top_level_window.winfo_exists():
             self.actions_top_level_window = InteractionTopLevelWindow(parent=self.master)
-            self.actions_top_level_window.geometry("500x950+1505+100")
+            self.actions_top_level_window.geometry(geometry)
             self.actions_top_level_window.resizable(False, False)
         else:
             self.actions_top_level_window.focus()
