@@ -144,17 +144,25 @@ class SidebarFrame(customtkinter.CTkFrame):
         self.master.modules_frame.tabview.set(module_name.title())
 
     def tools_button_event(self):
+        geometry = "450x900+1505+100"
+        if self.winfo_screenwidth() <= 1600:
+            geometry = "450x600+1050+100"
+
         if self.tools_window is None or not self.tools_window.winfo_exists():
             self.tools_window = ToolsWindow(self)
-            self.tools_window.geometry("450x950+1505+100")
+            self.tools_window.geometry(geometry)
             self.tools_window.resizable(False, False)
         else:
             self.tools_window.focus()
 
     def settings_button_event(self):
+        geometry = "450x900+1505+100"
+        if self.winfo_screenwidth() <= 1600:
+            geometry = "450x600+1050+100"
+
         if self.settings_window is None or not self.settings_window.winfo_exists():
             self.settings_window = SettingsWindow(self)
-            self.settings_window.geometry("450x950+1505+100")
+            self.settings_window.geometry(geometry)
             self.settings_window.resizable(False, False)
         else:
             self.settings_window.focus()
