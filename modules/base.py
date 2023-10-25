@@ -12,6 +12,7 @@ from aptos_sdk.transactions import EntryFunction
 from aptos_sdk.async_client import ClientConfig
 from aptos_sdk.client import ResourceNotFound
 from aptos_sdk.client import ApiError
+from httpx import ReadTimeout
 from loguru import logger
 
 from contracts.base import TokenBase
@@ -108,7 +109,8 @@ class ModuleBase:
                 "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>"
             )
             return resource["data"]["coin"]["value"]
-        except ResourceNotFound:
+
+        except Exception as ex:
             return 0
 
     def get_wallet_token_balance(
@@ -129,8 +131,9 @@ class ModuleBase:
             )
             return int(balance["data"]["coin"]["value"])
 
-        except ResourceNotFound:
+        except Exception as ex:
             return 0
+
 
     def get_token_info(self, token_obj: TokenBase) -> Union[dict, None]:
         """
@@ -187,7 +190,7 @@ class ModuleBase:
             )
             return True
 
-        except ResourceNotFound:
+        except Exception as ex:
             return False
 
     def register_coin_for_wallet(
@@ -324,9 +327,6 @@ class ModuleBase:
                 payload
             )
             return data
-
-        except ResourceNotFound:
-            return None
 
         except Exception as e:
             logger.error(f"Error: {e}")
