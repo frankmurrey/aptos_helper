@@ -50,7 +50,7 @@ class AbleFinanceRedeem(ModuleBase):
 
             return data.get('data').get('coin').get('value')
 
-        except ResourceNotFound:
+        except Exception as ex:
             logger.error(f"LP not found on wallet balance")
             return None
 
