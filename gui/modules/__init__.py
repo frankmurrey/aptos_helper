@@ -8,3 +8,5 @@ from .transfer import TransferTab
 from .unlock import UnlockTab
 from .the_aptos_bridge import TheAptosBridgeTab
 from .graffio import GraffioTab
+from .nft_collect import NftCollectTab
+
