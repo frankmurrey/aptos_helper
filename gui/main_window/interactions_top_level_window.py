@@ -157,6 +157,14 @@ class InteractionTopLevelWindow(customtkinter.CTkToplevel):
             self.current_tab_name = tab_name
             self.chose_module_frame.float_spinbox.max_value = 100
 
+        elif tab_name == "Nft Collect":
+            self.current_tab = modules.NftCollectTab(
+                self.tabview,
+                tab_name
+            )
+            self.current_tab_name = tab_name
+            self.chose_module_frame.float_spinbox.max_value = 1
+
     def set_default_tab(self):
         tab_name = self.chose_module_frame.modules_option_menu.get()
         self.tabview.add(tab_name.title())
@@ -243,7 +251,7 @@ class ChoseModuleFrame(customtkinter.CTkFrame):
                 "Unlock",
                 "Transfer",
                 "Aptos Bridge",
-                "Graffio"
+                "Nft Collect"
             ],
             command=master.set_new_tab
         )

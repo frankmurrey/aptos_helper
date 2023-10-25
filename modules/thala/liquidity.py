@@ -108,7 +108,7 @@ class ThalaLiquidityBase(LiquidityModuleBase):
 
             return wallet_lp_balance
 
-        except ResourceNotFound:
+        except Exception as ex:
             logger.error(f"LP not found on wallet balance")
             return None
 
