@@ -143,6 +143,16 @@ class ModuleExecutor:
             )
             execution_status = module.try_send_txn(retries=retries)
 
+        elif self.module_name == enums.ModuleName.NFT_COLLECT:
+            module = self.task.module(
+                account=account,
+                task=self.task,
+                base_url=base_url,
+                proxies=proxies,
+                wallet_data=wallet_data
+            )
+            execution_status = module.try_send_txn(retries=retries)
+
         else:
             module = self.task.module(
                 account=account,
