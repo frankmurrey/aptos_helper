@@ -18,6 +18,7 @@ class ModuleType(str, Enum):
     UNLOCK = "unlock"
     TRANSFER = "transfer"
     DRAW = "draw"
+    COLLECT = "collect"
 
 
 class ModuleName(str, Enum):
@@ -31,6 +32,8 @@ class ModuleName(str, Enum):
     DELEGATE = "delegate"
     UNLOCK = "unlock"
     GRAFFIO = "graffio"
+    NFT_COLLECT = "nft"
+
 
 
 class TaskStatus(str, Enum):
