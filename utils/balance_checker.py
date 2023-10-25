@@ -35,11 +35,8 @@ class BalanceChecker:
             )
             return int(balance["data"]["coin"]["value"])
 
-        except ResourceNotFound:
-            return 0
-
-        except ConnectError as e:
-            logger.error(f"Error while getting: {e}")
+        except Exception as ex:
+            logger.error(f"Error getting balance: {ex}")
             return 0
 
     def get_balance_decimals(self, address: AccountAddress) -> Union[int, None]:
