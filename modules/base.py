@@ -314,7 +314,7 @@ class ModuleBase:
             self,
             resource_address: AccountAddress,
             payload: str
-    ):
+    ) -> Union[dict, None]:
         """
         Gets token reserve
         :param resource_address:
@@ -329,8 +329,7 @@ class ModuleBase:
             return data
 
         except Exception as e:
-            logger.error(f"Error: {e}")
-            return False
+            return None
 
     def build_raw_transaction(
             self,
@@ -761,7 +760,6 @@ class LiquidityModuleBase(ModuleBase):
         :return:
         """
         initial_balance_x_decimals = self.initial_balance_x_wei / 10 ** self.token_x_decimals
-
         if self.task.use_all_balance:
             amount_out_wei = self.initial_balance_x_wei
 
@@ -778,7 +776,7 @@ class LiquidityModuleBase(ModuleBase):
             )
             return None
 
-        elif initial_balance_x_decimals > self.task.max_amount_out:
+        elif initial_balance_x_decimals < self.task.max_amount_out:
             amount_out_wei = self.get_random_amount_out_of_token(
                 min_amount=self.task.min_amount_out,
                 max_amount=initial_balance_x_decimals,
