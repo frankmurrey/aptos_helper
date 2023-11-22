@@ -274,6 +274,8 @@ class LiquidSwapRemoveLiquidity(LiquidityBase):
 
     def get_amounts_out(self, wallet_address: AccountAddress) -> Union[dict, None]:
         token_reserve = self.get_token_pair_reserve()
+        if token_reserve is None:
+            logger.error(f"Error while fetching token reserve")
 
         reserve_x = token_reserve.get(self.coin_x.contract_address)
         reserve_y = token_reserve.get(self.coin_y.contract_address)
