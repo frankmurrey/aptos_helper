@@ -116,6 +116,8 @@ class TokenTransfer(ModuleBase):
                 return None
 
         amount_out_wei = self.calculate_amount_out_from_balance(self.coin_x)
+        if amount_out_wei is None:
+            return None
 
         transaction_arguments = [
             TransactionArgument(address, Serializer.struct),
