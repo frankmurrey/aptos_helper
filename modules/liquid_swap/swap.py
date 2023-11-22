@@ -60,10 +60,6 @@ class LiquidSwapSwap(SwapModuleBase):
             payload=res_payload
         )
 
-        if resource_data is False:
-            logger.error(f"Error getting token pair reserve, {pool_type} pool")
-            return None
-
         if resource_data is not None:
             self.resource_data = resource_data
 
@@ -84,7 +80,7 @@ class LiquidSwapSwap(SwapModuleBase):
                 resource_address=resource_acc_address,
                 payload=res_payload
             )
-            if not reversed_data:
+            if reversed_data is None:
                 logger.error(f"Error getting token pair reserve (reverse), {pool_type} pool")
                 return None
 
