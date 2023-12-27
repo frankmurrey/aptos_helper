@@ -1,45 +1,55 @@
 import time
 import queue
-import warnings
 import threading as th
 import multiprocessing as mp
-from typing import Optional
+from typing import Optional, Union
 from typing import Callable
 from typing import Tuple
+from typing import List
 
 from loguru import logger
 
 from src.schemas.tasks import TaskBase
 from src.schemas.wallet_data import WalletData
+from src.schemas import event_item
 from src.internal_queue import InternalQueue
 
 
-def state_setter(obj: "TasksExecEventManager", state: dict):
+def state_setter(obj: "TaskExecEventManager", state: dict):
     obj.running = state["running"]
 
-    obj.wallets_started_queue = state["wallets_started_queue"]
-    obj.tasks_started_queue = state["tasks_started_queue"]
-
-    obj.wallets_completed_queue = state["wallets_completed_queue"]
-    obj.tasks_completed_queue = state["tasks_completed_queue"]
+    obj.started_events_queue = state["started_events_queue"]
+    obj.completed_events_queue = state["completed_events_queue"]
 
 
-class TasksExecEventManager:
+class TaskExecEventManager:
+
+    event_item_callback_map = {
+        event_item.WalletStartedEventItem: "_on_wallet_started_callbacks",
+        event_item.TaskStartedEventItem: "_on_task_started_callbacks",
+        event_item.WalletCompletedEventItem: "_on_wallet_completed_callbacks",
+        event_item.TaskCompletedEventItem: "_on_task_completed_callbacks",
+    }
+
     def __init__(self):
         self.running = mp.Event()
         self.listening_thread: Optional[th.Thread] = None
 
-        self.wallets_started_queue = InternalQueue[Tuple[WalletData]]()
-        self.tasks_started_queue = InternalQueue[Tuple[TaskBase, WalletData]]()
+        self.started_events_queue = InternalQueue[Union[
+            event_item.WalletStartedEventItem,
+            event_item.TaskStartedEventItem,
+        ]]()
 
-        self.wallets_completed_queue = InternalQueue[Tuple[WalletData]]()
-        self.tasks_completed_queue = InternalQueue[Tuple[TaskBase, WalletData]]()
+        self.completed_events_queue = InternalQueue[Union[
+            event_item.WalletCompletedEventItem,
+            event_item.TaskCompletedEventItem,
+        ]]()
 
-        self._on_wallet_started: Optional[Callable[[WalletData], None]] = self.pseudo_callback
-        self._on_task_started: Optional[Callable[[TaskBase, WalletData], None]] = self.pseudo_callback
+        self._on_wallet_started_callbacks: List[Callable[[WalletData], None]] = []
+        self._on_task_started_callbacks: List[Callable[[TaskBase, WalletData], None]] = []
 
-        self._on_wallet_completed: Optional[Callable[[WalletData], None]] = self.pseudo_callback
-        self._on_task_completed: Optional[Callable[[TaskBase, WalletData], None]] = self.pseudo_callback
+        self._on_wallet_completed_callbacks: List[Callable[[WalletData], None]] = []
+        self._on_task_completed_callbacks: List[Callable[[TaskBase, WalletData], None]] = []
 
     def pseudo_callback(self, *args, **kwargs):
         """
@@ -50,39 +60,48 @@ class TasksExecEventManager:
     # CALLBACKS SETTERS
     def on_wallet_started(self, callback: Callable[[WalletData], None]):
         """
-        Set a callback function to be called when a wallet is started.
+        Add a callback function to be called when a wallet is started.
 
         Args:
             callback (Callable[[WalletData], None]): The callback function to be called when a wallet is started.
         """
-        self._on_wallet_started = callback
+        self._on_wallet_started_callbacks.append(callback)
 
     def on_task_started(self, callback: Callable[[TaskBase, WalletData], None]):
         """
-        Set a callback function to be called when a task is started.
+        Add a callback function to be called when a task is started.
 
         Args:
             callback (Callable[[TaskBase, WalletData], None]): The callback function to be called when a task is started.
         """
-        self._on_task_started = callback
+        self._on_task_started_callbacks.append(callback)
 
     def on_wallet_completed(self, callback: Callable[[WalletData], None]):
         """
-        Set a callback function to be called when a wallet is completed.
+        Add a callback function to be called when a wallet is completed.
 
         Args:
             callback (Callable[[WalletData], None]): The callback function to be called when a wallet is completed.
         """
-        self._on_wallet_completed = callback
+        self._on_wallet_completed_callbacks.append(callback)
 
     def on_task_completed(self, callback: Callable[[TaskBase, WalletData], None]):
         """
-        Set a callback function to be called when a task is completed.
+        Add a callback function to be called when a task is completed.
 
         Args:
             callback (Callable[[TaskBase, WalletData], None]): The callback function to be called when a task is completed.
         """
-        self._on_task_completed = callback
+        self._on_task_completed_callbacks.append(callback)
+
+    def clear_callbacks(self):
+        """
+        Clear all callbacks.
+        """
+        self._on_wallet_started_callbacks = []
+        self._on_task_started_callbacks = []
+        self._on_wallet_completed_callbacks = []
+        self._on_task_completed_callbacks = []
 
     # EVENT CREATORS
     def set_wallet_started(self, wallet: WalletData):
@@ -92,7 +111,9 @@ class TasksExecEventManager:
         Args:
             wallet (WalletData): The wallet to be added to the queue.
         """
-        self.wallets_started_queue.put_nowait((wallet,))
+        self.started_events_queue.put_nowait(
+            event_item.WalletStartedEventItem(wallet=wallet)
+        )
 
     def set_task_started(self, task: TaskBase, wallet: WalletData):
         """
@@ -102,7 +123,9 @@ class TasksExecEventManager:
             task (TaskBase): The task that was started.
             wallet (WalletData): The wallet associated with the task.
         """
-        self.tasks_started_queue.put_nowait((task, wallet))
+        self.started_events_queue.put_nowait(
+            event_item.TaskStartedEventItem(task=task, wallet=wallet)
+        )
 
     def set_wallet_completed(self, wallet: WalletData):
         """
@@ -111,7 +134,9 @@ class TasksExecEventManager:
         Args:
             wallet (WalletData): The wallet to be added to the queue.
         """
-        self.wallets_completed_queue.put_nowait((wallet,))
+        self.completed_events_queue.put_nowait(
+            event_item.WalletCompletedEventItem(wallet=wallet)
+        )
 
     def set_task_completed(self, task: TaskBase, wallet: WalletData):
         """
@@ -121,20 +146,33 @@ class TasksExecEventManager:
             task (TaskBase): The task that was completed.
             wallet (WalletData): The wallet associated with the task.
         """
-        self.tasks_completed_queue.put_nowait((task, wallet))
+        self.completed_events_queue.put_nowait(
+            event_item.TaskCompletedEventItem(task=task, wallet=wallet)
+        )
 
-    def _process_queue_item(self, queue_name: str, callback: Callable):
+    def _process_queue_item(self, queue_name: str):
         """
         Process an item from a queue and call the given callback function.
 
         Args:
             queue_name (str): The name of the queue to process.
-            callback (Callable): The callback function to call with the queue item.
         """
         try:
             _queue: InternalQueue = getattr(self, queue_name)
-            queue_item: Tuple = _queue.get_nowait()
-            callback(*queue_item) if self.running else None
+
+            queue_item: Union[
+                event_item.WalletStartedEventItem,
+                event_item.TaskStartedEventItem,
+                event_item.WalletCompletedEventItem,
+                event_item.TaskCompletedEventItem,
+            ] = _queue.get_nowait()
+
+            if not self.running.is_set():
+                return
+
+            callbacks = getattr(self, self.event_item_callback_map[queue_item.__class__])
+            for callback in callbacks:
+                callback(*queue_item.get_data())
 
         except queue.Empty:
             time.sleep(0.1)
@@ -146,10 +184,8 @@ class TasksExecEventManager:
         logger.debug("Listening thread started")
 
         while self.running.is_set():
-            self._process_queue_item("wallets_started_queue", self._on_wallet_started)
-            self._process_queue_item("tasks_started_queue", self._on_task_started)
-            self._process_queue_item("wallets_completed_queue", self._on_wallet_completed)
-            self._process_queue_item("tasks_completed_queue", self._on_task_completed)
+            self._process_queue_item("started_events_queue")
+            self._process_queue_item("completed_events_queue")
 
         logger.debug("Listening thread stopped")
 
@@ -175,12 +211,13 @@ class TasksExecEventManager:
                 "running": self.running,
 
                 # queues
-                "wallets_started_queue": self.wallets_started_queue,
-                "tasks_started_queue": self.tasks_started_queue,
-                "wallets_completed_queue": self.wallets_completed_queue,
-                "tasks_completed_queue": self.tasks_completed_queue,
+                "started_events_queue": self.started_events_queue,
+                "completed_events_queue": self.completed_events_queue,
             },
             None,
             None,
             state_setter,
         )
+
+
+task_exec_event_manager = TaskExecEventManager()

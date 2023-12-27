@@ -3,18 +3,20 @@ from tkinter import Variable, messagebox
 import customtkinter
 from pydantic.error_wrappers import ValidationError
 
-from src.schemas.tasks import DelegateTask
+from src.schemas import tasks
 from gui.modules.txn_settings_frame import TxnSettingFrame
-from gui.wallet_right_window.wallet_window.validator_address_entry import ValidatorAddressEntry
+from gui.right_frame.wallet_components.validator_address_entry import ValidatorAddressEntry
 
 
 class DelegateTab:
     def __init__(
             self,
             tabview,
-            tab_name
+            tab_name,
+            task: tasks.DelegateTask = None
     ):
         self.tabview = tabview
+        self.tab_name = tab_name
 
         self.tabview.tab(tab_name).grid_columnconfigure(0, weight=1)
 
@@ -29,6 +31,7 @@ class DelegateTab:
         self.delegate_frame = DelegateFrame(
             master=self.tabview.tab(tab_name),
             grid=delegate_frame_grid,
+            task=task
         )
 
         txn_settings_grid = {
@@ -46,7 +49,7 @@ class DelegateTab:
 
     def build_config_data(self):
         try:
-            config_data = DelegateTask(
+            config_data = tasks.DelegateTask(
                 validator_address=self.delegate_frame.validator_address_entry.get(),
                 min_amount_out=self.delegate_frame.min_amount_entry.get(),
                 max_amount_out=self.delegate_frame.max_amount_entry.get(),
@@ -66,35 +69,41 @@ class DelegateTab:
 
 
 class DelegateFrame(customtkinter.CTkFrame):
-    def __init__(self, master, grid, **kwargs):
+    def __init__(
+            self,
+            master,
+            grid,
+            task: tasks.DelegateTask,
+            **kwargs
+    ):
         super().__init__(master, **kwargs)
 
-        self.frame = customtkinter.CTkFrame(master)
-        self.frame.grid(**grid)
-        self.frame.grid_columnconfigure((0, 1), weight=0, uniform="a")
-        self.frame.grid_rowconfigure((0, 1), weight=1)
+        self.task = task
 
+        self.grid(**grid)
+        self.grid_columnconfigure((0, 1), weight=0, uniform="a")
+        self.grid_rowconfigure((0, 1), weight=1)
+
+        # VALIDATOR ADDRESS
+        address = getattr(self.task, "validator_address", None)
         self.validator_address_entry = ValidatorAddressEntry(
-            self.frame,
-            pair_address="",
+            self,
+            pair_address=address,
         )
         self.validator_address_entry.grid(row=0, column=0, padx=20, pady=(10, 10), sticky="w")
 
-        self.min_amount_label = customtkinter.CTkLabel(self.frame, text="Min amount:")
+        # MIN AMOUNT
+        self.min_amount_label = customtkinter.CTkLabel(self, text="Min amount:")
         self.min_amount_label.grid(row=1, column=0, padx=20, pady=(10, 0), sticky="w")
 
-        self.min_amount_entry = customtkinter.CTkEntry(self.frame, width=120, textvariable=Variable(value="11"))
+        min_amount = getattr(self.task, "min_amount_out", "11")
+        self.min_amount_entry = customtkinter.CTkEntry(self, width=120, textvariable=Variable(value=min_amount))
         self.min_amount_entry.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="w")
 
-        self.max_amount_label = customtkinter.CTkLabel(self.frame, text="Max amount:")
+        # MAX AMOUNT
+        self.max_amount_label = customtkinter.CTkLabel(self, text="Max amount:")
         self.max_amount_label.grid(row=1, column=0, padx=(270, 0), pady=(10, 0), sticky="w")
 
-        self.max_amount_entry = customtkinter.CTkEntry(self.frame, width=120, textvariable=Variable(value="11"))
+        max_amount = getattr(self.task, "max_amount_out", "11")
+        self.max_amount_entry = customtkinter.CTkEntry(self, width=120, textvariable=Variable(value=max_amount))
         self.max_amount_entry.grid(row=2, column=0, padx=(270, 0), pady=(0, 20), sticky="w")
-
-
-
-
-
-
-

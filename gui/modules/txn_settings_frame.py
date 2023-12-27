@@ -1,38 +1,40 @@
 import customtkinter
 from tkinter import Variable
+from src.schemas import tasks
 
 
 class TxnSettingFrame(customtkinter.CTkFrame):
     def __init__(
             self,
             master,
-            grid
+            grid,
+            task: tasks.TaskBase = None,
     ):
         super().__init__(master)
 
         self.frame = customtkinter.CTkFrame(master, width=100)
         self.frame.grid(**grid,)
         self.frame.grid_columnconfigure(0, weight=1)
-        # self.frame.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
 
-        self.gas_price_label = customtkinter.CTkLabel(
+        self.gas_limit_label = customtkinter.CTkLabel(
             self.frame,
-            text="Gas Price (Octa):"
+            text="Gas Limit:"
         )
-        self.gas_price_label.grid(
+        self.gas_limit_label.grid(
             row=0,
             column=0,
             padx=20,
             pady=(10, 0),
             sticky='w'
         )
-        self.gas_price_entry = customtkinter.CTkEntry(
+
+        gas_limit = getattr(task, "gas_limit", "") if getattr(task, "forced_gas_limit", False) else 10000
+        self.gas_limit_entry = customtkinter.CTkEntry(
             self.frame,
             width=100,
-            state="normal",
-            textvariable=Variable(value=100)
+            textvariable=Variable(value=gas_limit)
         )
-        self.gas_price_entry.grid(
+        self.gas_limit_entry.grid(
             row=1,
             column=0,
             padx=20,
@@ -40,31 +42,7 @@ class TxnSettingFrame(customtkinter.CTkFrame):
             sticky="w",
         )
 
-        self.gas_limit_label = customtkinter.CTkLabel(
-            self.frame,
-            text="Gas Limit:"
-        )
-        self.gas_limit_label.grid(
-            row=2,
-            column=0,
-            padx=20,
-            pady=(0, 0),
-            sticky='w'
-        )
-        self.gas_limit_entry = customtkinter.CTkEntry(
-            self.frame,
-            width=100,
-            state="normal",
-            textvariable=Variable(value=10000)
-        )
-        self.gas_limit_entry.grid(
-            row=3,
-            column=0,
-            padx=20,
-            pady=(0, 10),
-            sticky="w",
-        )
-
+        check_box_value = getattr(task, "forced_gas_limit", False)
         self.forced_gas_limit_check_box = customtkinter.CTkCheckBox(
             self.frame,
             text="Forced gas limit",
@@ -74,9 +52,37 @@ class TxnSettingFrame(customtkinter.CTkFrame):
             offvalue=False
         )
         self.forced_gas_limit_check_box.grid(
-            row=4,
+            row=2,
             column=0,
             padx=20,
             pady=(0, 10),
             sticky="w"
+        )
+        if check_box_value:
+            self.forced_gas_limit_check_box.select()
+
+        self.gas_price_label = customtkinter.CTkLabel(
+            self.frame,
+            text="Gas Price (Octa):"
+        )
+        self.gas_price_label.grid(
+            row=0,
+            column=0,
+            padx=(160, 20),
+            pady=(10, 0),
+            sticky='w'
+        )
+
+        gas_price = getattr(task, "gas_price", "") if getattr(task, "forced_gas_limit", False) else 100
+        self.gas_price_entry = customtkinter.CTkEntry(
+            self.frame,
+            width=100,
+            textvariable=Variable(value=gas_price)
+        )
+        self.gas_price_entry.grid(
+            row=1,
+            column=0,
+            padx=(160, 20),
+            pady=(0, 10),
+            sticky="w",
         )

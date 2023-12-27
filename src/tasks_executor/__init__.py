@@ -1,2 +1,2 @@
-from .main import TasksExecutor
-from .main import tasks_executor
+from .main import TaskExecutor
+from .main import task_executor
