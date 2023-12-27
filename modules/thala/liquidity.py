@@ -12,13 +12,14 @@ from aptos_sdk.client import ResourceNotFound
 from httpx import ReadTimeout
 from loguru import logger
 
-from modules.base import LiquidityModuleBase
+from src import enums
 from src.schemas.action_models import TransactionPayloadData
 from src.schemas.action_models import ModuleExecutionResult
-from contracts.tokens.main import Tokens
-from src import enums
-from utils.delay import get_delay
+from src.schemas.wallet_data import WalletData
+from modules.base import LiquidityModuleBase
 from modules.thala.math import Math, get_pair_amount_in
+from contracts.tokens.main import Tokens
+from utils.delay import get_delay
 
 
 if TYPE_CHECKING:
@@ -37,13 +38,15 @@ class ThalaLiquidityBase(LiquidityModuleBase):
             account: Account,
             task: Union['ThalaAddLiquidityTask', 'ThalaRemoveLiquidityTask'],
             base_url: str,
+            wallet_data: WalletData,
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -146,13 +149,15 @@ class ThalaAddLiquidity(ThalaLiquidityBase):
             account: Account,
             task: 'ThalaAddLiquidityTask',
             base_url: str,
+            wallet_data: WalletData,
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
     def get_staked_lp_amount(
@@ -338,6 +343,7 @@ class ThalaAddLiquidity(ThalaLiquidityBase):
                 account=self.account,
                 task=task,
                 base_url=self.base_url,
+                wallet_data=self.wallet_data,
             )
             reverse_txn_status = reverse_action.send_txn()
             return reverse_txn_status
@@ -352,13 +358,15 @@ class ThalaRemoveLiquidity(ThalaLiquidityBase):
             account: Account,
             task: 'ThalaRemoveLiquidityTask',
             base_url: str,
+            wallet_data: WalletData,
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
     def get_lp_ratio(

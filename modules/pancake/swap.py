@@ -19,6 +19,7 @@ from src import enums
 
 if TYPE_CHECKING:
     from src.schemas.tasks import PancakeSwapTask
+    from src.schemas.wallet_data import WalletData
 
 
 class PancakeSwap(SwapModuleBase):
@@ -27,13 +28,15 @@ class PancakeSwap(SwapModuleBase):
             account: Account,
             task: 'PancakeSwapTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
         self.account = account

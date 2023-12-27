@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from src.schemas.tasks.base.add_liquidity import AddLiquidityTaskBase
     from src.schemas.tasks.base.remove_liquidity import RemoveLiquidityTaskBase
     from src.schemas.tasks.base.base import TaskBase
+    from src.schemas.wallet_data import WalletData
 
 
 class ModuleBase:
@@ -40,11 +41,14 @@ class ModuleBase:
             base_url: str,
             task: 'TaskBase',
             account: Account,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
 
         self.base_url = base_url
         self.task = task
+        self.account = account
+        self.wallet_data = wallet_data
         self.client = CustomRestClient(base_url=base_url, proxies=proxies)
         self.gecko_pricer = GeckoPricer(client=self.client)
         self.storage = Storage()
@@ -134,7 +138,6 @@ class ModuleBase:
         except Exception as ex:
             return 0
 
-
     def get_token_info(self, token_obj: TokenBase) -> Union[dict, None]:
         """
         Gets token info
@@ -145,7 +148,6 @@ class ModuleBase:
             return None
 
         coin_address = self.get_address_from_hex(token_obj.address)
-
         try:
             token_info = self.client.account_resource(
                 coin_address,
@@ -537,38 +539,140 @@ class ModuleBase:
         return self.module_execution_result
 
 
-class SwapModuleBase(ModuleBase):
-    task: 'SwapTaskBase'
-
+class SingleCoinModuleBase(ModuleBase):
     def __init__(
             self,
             account: Account,
             base_url: str,
-            task: 'SwapTaskBase',
-            proxies: dict = None
+            task,
+            wallet_data: 'WalletData',
+            proxies: dict = None,
     ):
         super().__init__(
             base_url=base_url,
             task=task,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
-        self.account = account
+        random_coin_y = getattr(self.task, "random_coin_y", None)
+        if not random_coin_y == enums.MiscTypes.RANDOM:
 
-        if not self.task.coin_y == enums.MiscTypes.RANDOM:
-
-            self.coin_x = self.tokens.get_by_name(self.task.coin_x)
-            self.coin_y = self.tokens.get_by_name(self.task.coin_y)
+            coin_x_symbol = getattr(self.task, "coin_x")
+            self.coin_x = self.tokens.get_by_name(coin_x_symbol)
 
             self.initial_balance_x_wei = self.get_wallet_token_balance(
                 wallet_address=self.account.address(),
                 token_address=self.coin_x.contract_address
             )
+            self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
+
+    def check_local_tokens_data(self) -> bool:
+        """
+        Checks if token decimals are fetched.
+        :return:
+        """
+
+        if self.token_x_decimals is None:
+            logger.error(f"Token decimals not fetched")
+            return False
+
+    def calculate_amount_out_from_balance(
+            self,
+            coin_x: TokenBase,
+    ) -> Union[int, None]:
+        """
+        Calculates amount out of token with decimals
+        :param coin_x:
+        :return:
+        """
+        initial_balance_x_decimals = self.initial_balance_x_wei / 10 ** self.token_x_decimals
+
+        if self.initial_balance_x_wei == 0:
+            logger.error(f"Wallet {coin_x.symbol.upper()} balance = 0")
+            return None
+
+        use_all_balance = getattr(self.task, "use_all_balance", None)
+        send_percent_balance = getattr(self.task, "send_percent_balance", None)
+        min_amount_out = getattr(self.task, "min_amount_out", None)
+        max_amount_out = getattr(self.task, "max_amount_out", None)
+
+        if use_all_balance:
+            amount_out_wei = self.initial_balance_x_wei
+
+        elif send_percent_balance:
+            percent = random.randint(
+                int(min_amount_out), int(max_amount_out)
+            ) / 100
+            amount_out_wei = int(self.initial_balance_x_wei * percent)
+
+        elif initial_balance_x_decimals < min_amount_out:
+            logger.error(
+                f"Wallet {coin_x.symbol.upper()} balance less than min amount out, "
+                f"balance: {initial_balance_x_decimals}, min amount out: {min_amount_out}"
+            )
+            return None
+
+        elif initial_balance_x_decimals < max_amount_out:
+            amount_out_wei = self.get_random_amount_out_of_token(
+                min_amount=min_amount_out,
+                max_amount=initial_balance_x_decimals,
+                decimals=self.token_x_decimals
+            )
+
+        else:
+            amount_out_wei = self.get_random_amount_out_of_token(
+                min_amount=min_amount_out,
+                max_amount=max_amount_out,
+                decimals=self.token_x_decimals
+            )
+
+        return amount_out_wei
+
+
+class MultiCoinModuleBase(ModuleBase):
+    def __init__(
+            self,
+            account: Account,
+            base_url: str,
+            task,
+            wallet_data: 'WalletData',
+            proxies: dict = None,
+    ):
+        super().__init__(
+            base_url=base_url,
+            task=task,
+            proxies=proxies,
+            account=account,
+            wallet_data=wallet_data
+        )
+        super().__init__(
+            base_url=base_url,
+            task=task,
+            proxies=proxies,
+            account=account,
+            wallet_data=wallet_data
+        )
+        random_coin_y = getattr(task, "random_coin_y", None)
+        if not random_coin_y == enums.MiscTypes.RANDOM:
+
+            # COIN X
+            coin_x_symbol = getattr(self.task, "coin_x")
+            self.coin_x = self.tokens.get_by_name(coin_x_symbol)
+
+            self.initial_balance_x_wei = self.get_wallet_token_balance(
+                wallet_address=self.account.address(),
+                token_address=self.coin_x.contract_address
+            )
+            self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
+
+            # COIN Y
+            coin_y_symbol = getattr(task, "coin_y")
+            self.coin_y = self.tokens.get_by_name(coin_y_symbol)
             self.initial_balance_y_wei = self.get_wallet_token_balance(
                 wallet_address=self.account.address(),
                 token_address=self.coin_y.contract_address
             )
-            self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
             self.token_y_decimals = self.get_token_decimals(token_obj=self.coin_y)
 
     def check_local_tokens_data(self) -> bool:
@@ -596,37 +700,63 @@ class SwapModuleBase(ModuleBase):
             logger.error(f"Wallet {coin_x.symbol.upper()} balance = 0")
             return None
 
-        if self.task.use_all_balance:
+        use_all_balance = getattr(self.task, "use_all_balance", None)
+        send_percent_balance = getattr(self.task, "send_percent_balance", None)
+        min_amount_out = getattr(self.task, "min_amount_out", None)
+        max_amount_out = getattr(self.task, "max_amount_out", None)
+
+        if use_all_balance:
             amount_out_wei = self.initial_balance_x_wei
 
-        elif self.task.send_percent_balance:
+        elif send_percent_balance:
             percent = random.randint(
-                int(self.task.min_amount_out), int(self.task.max_amount_out)
+                int(min_amount_out), int(max_amount_out)
             ) / 100
             amount_out_wei = int(self.initial_balance_x_wei * percent)
 
-        elif initial_balance_x_decimals < self.task.min_amount_out:
+        elif initial_balance_x_decimals < min_amount_out:
             logger.error(
                 f"Wallet {coin_x.symbol.upper()} balance less than min amount out, "
-                f"balance: {initial_balance_x_decimals}, min amount out: {self.task.min_amount_out}"
+                f"balance: {initial_balance_x_decimals}, min amount out: {min_amount_out}"
             )
             return None
 
-        elif initial_balance_x_decimals < self.task.max_amount_out:
+        elif initial_balance_x_decimals < max_amount_out:
             amount_out_wei = self.get_random_amount_out_of_token(
-                min_amount=self.task.min_amount_out,
+                min_amount=min_amount_out,
                 max_amount=initial_balance_x_decimals,
                 decimals=self.token_x_decimals
             )
 
         else:
             amount_out_wei = self.get_random_amount_out_of_token(
-                min_amount=self.task.min_amount_out,
-                max_amount=self.task.max_amount_out,
+                min_amount=min_amount_out,
+                max_amount=max_amount_out,
                 decimals=self.token_x_decimals
             )
 
         return amount_out_wei
+
+
+class SwapModuleBase(MultiCoinModuleBase):
+    task: 'SwapTaskBase'
+
+    def __init__(
+            self,
+            account: Account,
+            base_url: str,
+            task: 'SwapTaskBase',
+            wallet_data: 'WalletData',
+            proxies: dict = None,
+    ):
+        super().__init__(
+            base_url=base_url,
+            task=task,
+            proxies=proxies,
+            account=account,
+            wallet_data=wallet_data
+        )
+        self.account = account
 
     def send_swap_type_txn(
             self,
@@ -695,7 +825,7 @@ class SwapModuleBase(ModuleBase):
         return txn_status
 
 
-class LiquidityModuleBase(ModuleBase):
+class LiquidityModuleBase(MultiCoinModuleBase):
     task: Union['AddLiquidityTaskBase', 'RemoveLiquidityTaskBase']
 
     def __init__(
@@ -703,94 +833,17 @@ class LiquidityModuleBase(ModuleBase):
             account: Account,
             base_url: str,
             task: Union['AddLiquidityTaskBase', 'RemoveLiquidityTaskBase'],
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             base_url=base_url,
             task=task,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
         self.account = account
-
-        if not self.task.coin_y == enums.MiscTypes.RANDOM:
-            self.coin_x = self.tokens.get_by_name(self.task.coin_x)
-            self.coin_y = self.tokens.get_by_name(self.task.coin_y)
-
-            self.initial_balance_x_wei = self.get_wallet_token_balance(
-                wallet_address=self.account.address(),
-                token_address=self.coin_x.contract_address
-            )
-            self.initial_balance_y_wei = self.get_wallet_token_balance(
-                wallet_address=self.account.address(),
-                token_address=self.coin_y.contract_address
-            )
-            self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
-            self.token_y_decimals = self.get_token_decimals(token_obj=self.coin_y)
-
-    def check_local_tokens_data(self) -> bool:
-        """
-        Checks if token decimals are fetched.
-        :return:
-        """
-
-        if self.token_x_decimals is None or self.token_y_decimals is None:
-            logger.error(f"Token decimals not fetched")
-            return False
-
-    def fetch_local_tokens_data(self):
-        self.initial_balance_x_wei = self.get_wallet_token_balance(
-            wallet_address=self.account.address(),
-            token_address=self.coin_x.contract_address
-        )
-        self.initial_balance_y_wei = self.get_wallet_token_balance(
-            wallet_address=self.account.address(),
-            token_address=self.coin_y.contract_address
-        )
-        self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
-        self.token_y_decimals = self.get_token_decimals(token_obj=self.coin_y)
-
-    def calculate_amount_out_from_balance(
-            self,
-            coin_x: TokenBase,
-    ) -> Union[int, None]:
-        """
-        Calculates amount out of token with decimals
-        :param coin_x:
-        :return:
-        """
-        initial_balance_x_decimals = self.initial_balance_x_wei / 10 ** self.token_x_decimals
-        if self.task.use_all_balance:
-            amount_out_wei = self.initial_balance_x_wei
-
-        elif self.task.send_percent_balance:
-            percent = random.randint(
-                int(self.task.min_amount_out), int(self.task.max_amount_out)
-            ) / 100
-            amount_out_wei = int(self.initial_balance_x_wei * percent)
-
-        elif initial_balance_x_decimals < self.task.min_amount_out:
-            logger.error(
-                f"Wallet {coin_x.symbol.upper()} balance less than min amount out, "
-                f"balance: {initial_balance_x_decimals}, min amount out: {self.task.min_amount_out}"
-            )
-            return None
-
-        elif initial_balance_x_decimals < self.task.max_amount_out:
-            amount_out_wei = self.get_random_amount_out_of_token(
-                min_amount=self.task.min_amount_out,
-                max_amount=initial_balance_x_decimals,
-                decimals=self.token_x_decimals
-            )
-
-        else:
-            amount_out_wei = self.get_random_amount_out_of_token(
-                min_amount=self.task.min_amount_out,
-                max_amount=self.task.max_amount_out,
-                decimals=self.token_x_decimals
-            )
-
-        return amount_out_wei
 
     def send_liquidity_type_txn(
             self,

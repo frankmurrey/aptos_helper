@@ -9,12 +9,14 @@ from aptos_sdk.type_tag import TypeTag
 from aptos_sdk.type_tag import StructTag
 from loguru import logger
 
-from modules.base import SwapModuleBase
 from src.schemas.tasks.base.swap import SwapTaskBase
 from utils.delay import get_delay
 from src.schemas.action_models import TransactionPayloadData
 from src.schemas.action_models import ModuleExecutionResult
 from src import enums
+from src.schemas.wallet_data import WalletData
+
+from modules.base import SwapModuleBase
 from modules.liquid_swap.math import get_coins_out_with_fees_stable
 from modules.liquid_swap.math import get_coins_out_with_fees
 from modules.liquid_swap.math import d
@@ -26,13 +28,15 @@ class LiquidSwapSwap(SwapModuleBase):
             account: Account,
             task: SwapTaskBase,
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -261,7 +265,6 @@ class LiquidSwapSwap(SwapModuleBase):
             TransactionArgument(int(amount_out_y_wei), Serializer.u64),
             TransactionArgument(int(amount_in_x_wei), Serializer.u64)
         ]
-
         payload = EntryFunction.natural(
             f"{self.router_address}::scripts_v2",
             "swap",

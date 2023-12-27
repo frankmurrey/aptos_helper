@@ -22,6 +22,7 @@ from modules.liquid_swap.math import d
 if TYPE_CHECKING:
     from src.schemas.tasks import LiquidSwapAddLiquidityTask
     from src.schemas.tasks import LiquidSwapRemoveLiquidityTask
+    from src.schemas.wallet_data import WalletData
 
 
 class LiquidityBase(LiquidityModuleBase):
@@ -30,13 +31,15 @@ class LiquidityBase(LiquidityModuleBase):
             account: Account,
             task: Union['LiquidSwapAddLiquidityTask', 'LiquidSwapRemoveLiquidityTask'],
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -94,12 +97,14 @@ class LiquidSwapAddLiquidity(LiquidityBase):
             account: Account,
             task: 'LiquidSwapAddLiquidityTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
+            wallet_data=wallet_data,
             proxies=proxies
         )
 
@@ -242,6 +247,7 @@ class LiquidSwapAddLiquidity(LiquidityBase):
                 account=self.account,
                 task=task,
                 base_url=self.base_url,
+                wallet_data=self.wallet_data
             )
             reverse_txn_status = reverse_action.send_txn()
             return reverse_txn_status
@@ -255,13 +261,15 @@ class LiquidSwapRemoveLiquidity(LiquidityBase):
             account: Account,
             task: 'LiquidSwapRemoveLiquidityTask',
             base_url: str,
-            proxies: dict = None
+            wallet_data: 'WalletData',
+            proxies: dict = None,
     ):
         super().__init__(
             account=account,
             task=task,
             base_url=base_url,
-            proxies=proxies
+            proxies=proxies,
+            wallet_data=wallet_data
         )
 
         self.account = account

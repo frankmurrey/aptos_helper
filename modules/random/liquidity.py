@@ -3,6 +3,7 @@ from modules.base import LiquidityModuleBase
 from contracts.tokens.main import Tokens
 from src.schemas.action_models import ModuleExecutionResult
 from src.schemas.tasks import AddLiquidityTaskBase
+from src.schemas.wallet_data import WalletData
 from src.schemas import tasks
 
 
@@ -18,6 +19,7 @@ class RandomAddLiquidity(LiquidityModuleBase):
             account,
             base_url: str,
             task: AddLiquidityTaskBase,
+            wallet_data: 'WalletData',
             proxies: dict = None,
     ):
         super().__init__(
@@ -25,6 +27,7 @@ class RandomAddLiquidity(LiquidityModuleBase):
             base_url=base_url,
             task=task,
             proxies=proxies,
+            wallet_data=wallet_data
         )
 
         random_task_class = random.choice(LIQUIDITY_TASKS)

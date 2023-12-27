@@ -10,6 +10,7 @@ from src import enums
 
 if TYPE_CHECKING:
     from src.schemas.tasks.the_aptos_bridge import TheAptosBridgeClaimTask
+    from src.schemas.wallet_data import WalletData
 
 
 class AptosBridgeClaim(ModuleBase):
@@ -18,13 +19,15 @@ class AptosBridgeClaim(ModuleBase):
             account: Account,
             task: 'TheAptosBridgeClaimTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.task = task

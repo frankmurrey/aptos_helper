@@ -3,6 +3,7 @@ from modules.base import SwapModuleBase
 from contracts.tokens.main import Tokens
 from src.schemas.action_models import ModuleExecutionResult
 from src.schemas.tasks.base.swap import SwapTaskBase
+from src.schemas.wallet_data import WalletData
 from src.schemas import tasks
 
 SWAP_TASKS = [
@@ -17,6 +18,7 @@ class RandomSwap(SwapModuleBase):
             account,
             base_url: str,
             task: SwapTaskBase,
+            wallet_data: 'WalletData',
             proxies: dict = None,
     ):
         super().__init__(
@@ -24,6 +26,7 @@ class RandomSwap(SwapModuleBase):
             base_url=base_url,
             task=task,
             proxies=proxies,
+            wallet_data=wallet_data
         )
 
         random_task_class = random.choice(SWAP_TASKS)

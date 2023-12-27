@@ -36,7 +36,8 @@ class AptosBridge(ModuleBase):
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.task = task

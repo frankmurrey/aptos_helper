@@ -18,6 +18,7 @@ from utils.delay import get_delay
 from contracts.tokens.main import TokenBase
 from src.schemas.action_models import TransactionPayloadData
 from src.schemas.action_models import ModuleExecutionResult
+from src.schemas.wallet_data import WalletData
 
 if TYPE_CHECKING:
     from src.schemas.tasks import AbelSupplyTask
@@ -32,13 +33,15 @@ class AbleFinanceMint(ModuleBase):
             account: Account,
             task: 'AbelSupplyTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
         self.account = account
         self.task = task
@@ -154,6 +157,7 @@ class AbleFinanceMint(ModuleBase):
                 account=self.account,
                 task=task,
                 base_url=self.base_url,
+                wallet_data=self.wallet_data,
             )
             reverse_txn_status = reverse_action.send_txn()
             return reverse_txn_status

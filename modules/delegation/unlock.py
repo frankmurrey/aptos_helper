@@ -13,6 +13,7 @@ from src.schemas.action_models import TransactionPayloadData
 
 if TYPE_CHECKING:
     from src.schemas.tasks import UnlockTask
+    from src.schemas.wallet_data import WalletData
 
 
 class Unlock(ModuleBase):
@@ -24,13 +25,15 @@ class Unlock(ModuleBase):
             account: Account,
             task: 'UnlockTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.account = account
