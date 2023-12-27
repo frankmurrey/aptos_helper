@@ -4,7 +4,7 @@ from loguru import logger
 
 from src.templates._tokens_template import TOKENS_DATA
 from src.templates._app_config_template import APP_CONFIG
-from src.file_manager import FileManager
+from utils.file_manager import FileManager
 
 from src import paths
 
