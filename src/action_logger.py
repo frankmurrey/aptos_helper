@@ -2,7 +2,7 @@ from src.storage import Storage
 from src.storage import ActionStorage
 from src.schemas.logs import WalletActionSchema
 from utils.xlsx import write_wallet_action_to_xlsx
-from src.file_manager import FileManager
+from utils.file_manager import FileManager
 
 from loguru import logger
 
