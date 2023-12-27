@@ -1,13 +1,19 @@
 from pydantic import BaseModel
 from pydantic import validator
+
 from src import exceptions
+from src import enums
 from utils import validation
 
 
 class AppConfigSchema(BaseModel):
+    run_mode: enums.RunMode = enums.RunMode.SYNC
     preserve_logs: bool = True
+    use_proxy: bool = True
     rpc_url: str = "https://rpc.ankr.com/http/aptos/v1"
     wallets_amount_to_execute_in_test_mode: int = 3
+
+    debug: bool = False
 
     @validator('rpc_url', pre=True)
     def rpc_url_must_be_valid(cls, value):
