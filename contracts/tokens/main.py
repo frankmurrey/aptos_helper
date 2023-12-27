@@ -1,6 +1,6 @@
 from loguru import logger
 
-from src.file_manager import FileManager
+from utils.file_manager import FileManager
 from src import paths
 from contracts.base import TokenBase
 
