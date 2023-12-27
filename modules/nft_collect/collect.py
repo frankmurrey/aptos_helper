@@ -1,7 +1,7 @@
 import random
 import time
 import json
-from typing import Union, TYPE_CHECKING, List, Callable, Any
+from typing import Union, TYPE_CHECKING, List
 
 from aptos_sdk.transactions import EntryFunction, TransactionArgument, Serializer
 from aptos_sdk.account import Account, AccountAddress
@@ -12,7 +12,6 @@ from loguru import logger
 import config
 from modules.base import ModuleBase
 from modules.nft_collect import data
-from contracts.tokens.main import Tokens, TokenBase
 from src import enums
 from src.schemas.wallet_data import WalletData
 from src.schemas.action_models import ModuleExecutionResult
@@ -138,7 +137,7 @@ class NftCollect(ModuleBase):
             amount_y_decimals=0
         )
 
-    def send_txn(self):
+    def send_txn(self) -> ModuleExecutionResult:
         all_v2_collectibles = self.get_v2_collectibles_for_wallet(wallet_address=self.account.address())
         if all_v2_collectibles is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
