@@ -5,7 +5,6 @@ from enum import Enum
 from colorama import Fore, Style
 
 from src.schemas.tasks.base import TaskBase
-from src.schemas.tasks.jediswap import JediSwapTask
 from utils.repr.misc import donation_messages
 from utils.repr.symbol import Symbol
 from utils.repr.color import Color
@@ -199,20 +198,3 @@ def module_config_table(task: TaskBase):
               f"{Fore.RESET}\n")
 
     print(f"{Fore.LIGHTMAGENTA_EX}Starting in {config.DEFAULT_DELAY_SEC} sec...{Fore.RESET}\n")
-
-
-if __name__ == '__main__':
-    _task = JediSwapTask(
-        coin_x='usdt',
-        coin_y='eth',
-        min_amount_out=0.1,
-        max_amount_out=0.1,
-        slippage=2,
-        test_mode=True,
-        max_fee=6000000,
-        wait_for_receipt=True,
-        txn_wait_timeout_sec=240,
-        reverse_action=True,
-
-    )
-    print(module_config_table(_task))
