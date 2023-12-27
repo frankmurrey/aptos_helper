@@ -47,8 +47,7 @@ class ProxyManager:
 
     def get_ip(self) -> Union[str, None]:
         proxies = self.get_proxy()
-        if proxies is None:
-            return None
+
         try:
             http_client = httpx.Client(proxies=proxies)
             ipify_url = 'https://api.ipify.org?format=json'
