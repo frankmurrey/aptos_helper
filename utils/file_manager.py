@@ -165,3 +165,24 @@ class FileManager:
             writer = csv.writer(file)
             for row in data:
                 writer.writerow(row)
+
+    @staticmethod
+    def write_data_to_txt_file(
+            file_path: str,
+            data: Union[str, list],
+            raise_exception: bool = False
+    ) -> None:
+        if not file_path:
+            return
+        try:
+            with open(file_path, "w") as file:
+                if isinstance(data, list):
+                    for line in data:
+                        file.write(f"{line}\n")
+                else:
+                    file.write(data)
+
+        except Exception as e:
+            logger.error(f"Error while writing file \"{file_path}\": {e}")
+            if raise_exception:
+                raise exceptions.AppValidationError(f"Error while writing file \"{file_path}\": {e}")
