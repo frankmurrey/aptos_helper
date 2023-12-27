@@ -36,4 +36,16 @@ TOKENS_DATA = [
             "the_aptos_bridge"
         ]
     },
+{
+        "symbol": "mod",
+        "contract_address": "0x6f986d146e4a90b828d8c12c14b6f4e003fdff11a8eecceceb63744363eaac01::mod_coin::MOD",
+        "gecko_id": "move-dollar",
+        "aptos_bridge_handle": "",
+        "available_protocols": [
+            "pancake",
+            "abel",
+            "thala",
+            "liquid_swap"
+        ]
+    }
 ]
