@@ -106,7 +106,6 @@ class ButtonActionsFrame(customtkinter.CTkFrame):
         )
 
     def add_action_callback(self, action: dict):
-        print(action)
         self.master.set_actions([action])
 
     def add_action_button_event(self):
