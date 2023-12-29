@@ -47,5 +47,15 @@ TOKENS_DATA = [
             "thala",
             "liquid_swap"
         ]
+    },
+{
+        "symbol": "amAPT",
+        "contract_address": "0x111ae3e5bc816a5e63c2da97d0aa3886519e0cd5e4b046659fa35796bd11542a::amapt_token::AmnisApt",
+        "gecko_id": "",
+        "aptos_bridge_handle": "",
+        "available_protocols": [
+            "pancake",
+            "liquid_swap"
+        ]
     }
 ]
