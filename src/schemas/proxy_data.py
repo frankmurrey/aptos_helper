@@ -27,6 +27,3 @@ class ProxyData(BaseModel):
 
         return proxy_string
 
-
-if __name__ == '__main__':
-    print(ProxyData(host="", port="").to_string())
