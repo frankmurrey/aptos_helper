@@ -19,7 +19,11 @@ class ModuleType(str, Enum):
     TRANSFER = "transfer"
     DRAW = "draw"
     COLLECT = "collect"
-    PLACE_ORDER = "place_order"
+    PLACE_OPEN_ORDER = "open order"
+    PLACE_CANCEL_ORDER = "cancel order"
+    TRADE = "trade"
+    DEPOSIT = "deposit"
+    UNSTAKE = "unstake"
 
 
 class ModuleName(str, Enum):
@@ -35,6 +39,9 @@ class ModuleName(str, Enum):
     GRAFFIO = "graffio"
     NFT_COLLECT = "nft"
     MERKLE = "merkle"
+    AMNIS = "amnis"
+    GATOR = "gator"
+    SUSHI = "sushi"
 
 
 class TabName(str, Enum):
@@ -48,6 +55,11 @@ class TabName(str, Enum):
     DELEGATE = "Delegate"
     UNLOCK = "Unlock"
     NFT_COLLECT = "NFT Collect"
+    MERKLE = "Merkle"
+    TRADE = "Trade"
+    DEPOSIT = "Deposit"
+    MINT = "Mint"
+    STAKE = "Stake"
 
 
 class TaskStatus(str, Enum):
