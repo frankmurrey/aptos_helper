@@ -3,6 +3,7 @@ from .base.add_liquidity import AddLiquidityTaskBase
 from .base.remove_liquidity import RemoveLiquidityTaskBase
 from .base.supply import SupplyTaskBase
 from .base.swap import SwapTaskBase
+from .base.trade import TradeTaskBase
 from .base.withdraw import WithdrawTaskBase
 
 
@@ -25,7 +26,14 @@ from .transfer import TransferTask
 from .graffio import GraffioDrawTask
 from .nft_collect import NftCollectTask
 from .nft_collect import NftCollectTask
-from .merkle import MerklePlaceOrderTask
+from .merkle import MerklePlaceOpenOrderTask
+from .merkle import MerklePlaceCancelOrderTask
+from .amnis import AmnisMintAndStakeTask
+from .amnis import AmnisUnstakeTask
+from .gator import GatorTradeTask
+from .gator import GatorDepositTask
+from .gator import GatorWithdrawTask
+from .sushi import SushiSwapTask
 
 from .random_task.swap import RandomSwapTask
 from .random_task.liquidity import RandomAddLiquidityTask
