@@ -26,4 +26,3 @@ class ProxyData(BaseModel):
             proxy_string += f":{self.username}:{self.password}"
 
         return proxy_string
-
