@@ -63,6 +63,9 @@ TABS: dict = {
         tab=modules.NftCollectTab,
         spinbox_max_value=1,
     ),
+    enums.TabName.MERKLE: Tab(
+        tab=modules.MerkleTab,
+    ),
 }
 
 
