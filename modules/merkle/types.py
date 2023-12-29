@@ -40,3 +40,16 @@ class PairState(BaseModel):
     orders: PositionHandle
     short_open_interest: int
     short_positions: PositionHandle
+
+
+class UserPosition(BaseModel):
+    acc_funding_fee_per_size: int
+    acc_funding_fee_per_size_positive: bool
+    acc_rollover_fee_per_collateral: int
+    avg_price: int
+    collateral: int
+    last_execute_timestamp: int
+    size: int
+    stop_loss_trigger_price: int
+    take_profit_trigger_price: int
+    uid: int
