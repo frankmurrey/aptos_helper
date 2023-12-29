@@ -1,6 +1,6 @@
 import random
 import time
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Any
 
 from aptos_sdk.account import Account
 from aptos_sdk.account import AccountAddress
@@ -173,6 +173,28 @@ class ModuleBase:
             return None
 
         return token_info["decimals"]
+
+    def make_view_call(
+            self,
+            function: str,
+            type_arguments: list,
+            arguments: list
+    ) -> Union[Any, None]:
+        try:
+            payload = {
+                "function": function,
+                "type_arguments": type_arguments,
+                "arguments": arguments,
+            }
+            response = self.client.client.post(url=f"{self.base_url}/view", json=payload)
+            if response.status_code != 200:
+                return None
+
+            return response.json()
+
+        except Exception as e:
+            logger.debug(f"Error making view call: {e}")
+            return None
 
     def is_token_registered_for_address(
             self,
