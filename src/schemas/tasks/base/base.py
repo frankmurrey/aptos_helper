@@ -124,7 +124,6 @@ class TaskBase(BaseModel):
 
     @validator("reverse_action_max_delay_sec", pre=True)
     def validate_reverse_action_max_delay_sec_pre(cls, value, values):
-        print(values)
         if not values["reverse_action"]:
             return 0
 
