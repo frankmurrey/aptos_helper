@@ -94,7 +94,7 @@ class TokenTransfer(ModuleBase):
 
         return amount_out_wei
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         if not self.recipient_address:
             logger.error("Recipient address is not set, please set it as wallet pair address")
             return None
@@ -146,7 +146,7 @@ class TokenTransfer(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        payload = self.build_transaction_payload()
+        payload = self.build_txn_payload_data()
         if payload is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"
