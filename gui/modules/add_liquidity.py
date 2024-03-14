@@ -16,8 +16,7 @@ from src.schemas import tasks
 
 
 LIQ_TASKS = {
-    enums.ModuleName.PANCAKE: tasks.LiquidSwapAddLiquidityTask,
-    enums.ModuleName.LIQUID_SWAP: tasks.ThalaAddLiquidityTask,
+    enums.ModuleName.LIQUID_SWAP: tasks.LiquidSwapAddLiquidityTask,
 }
 
 
