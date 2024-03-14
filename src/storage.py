@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from loguru import logger
 
@@ -15,20 +16,6 @@ class Storage:
 
         def __init__(self):
             self.__app_config: AppConfigSchema = self.__load_app_config()
-            self.__wallets_data = []
-
-        def set_wallets_data(self, value):
-            self.__wallets_data = value
-
-        def add_wallet_data(self, value):
-            self.__wallets_data.append(value)
-
-        def clear_wallets_data(self):
-            self.__wallets_data.clear()
-
-        @property
-        def wallets_data(self):
-            return self.__wallets_data
 
         @property
         def app_config(self) -> AppConfigSchema:
@@ -36,14 +23,22 @@ class Storage:
 
         def __load_app_config(self) -> AppConfigSchema:
             try:
-                config_file_data = FileManager.read_data_from_json_file(paths.APP_CONFIG_FILE)
-                return AppConfigSchema(**config_file_data)
+                if os.path.exists(paths.APP_CONFIG_FILE):
+                    config_file_data = FileManager.read_data_from_json_file(paths.APP_CONFIG_FILE)
+                    return AppConfigSchema(**config_file_data)
             except Exception as e:
                 logger.error(f"Error while loading app config: {e}")
                 logger.exception(e)
 
         def update_app_config(self, config: AppConfigSchema):
             self.__app_config = config
+
+        def update_app_config_values(self, **kwargs):
+            if not self.__app_config:
+                return
+            config_dict = self.__app_config.dict()
+            new_config_dict = {**config_dict, **kwargs}
+            self.__app_config = AppConfigSchema(**new_config_dict)
 
     def __new__(cls):
         if not Storage.__instance:
@@ -97,7 +92,7 @@ class ActionStorage:
                 return
 
             self.current_logs_dir = new_logs_dir
-            logger.debug(f"Current logs dir set to {new_logs_dir}")
+            logger.info(f"Current logs dir set to {new_logs_dir}")
 
         def get_current_logs_dir(self):
             return self.current_logs_dir
