@@ -15,8 +15,7 @@ from contracts.tokens.main import Tokens
 from gui.modules.txn_settings_frame import TxnSettingFrame
 
 LIQ_TASKS = {
-    enums.ModuleName.PANCAKE: tasks.LiquidSwapAddLiquidityTask,
-    enums.ModuleName.LIQUID_SWAP: tasks.ThalaAddLiquidityTask,
+    enums.ModuleName.LIQUID_SWAP: tasks.LiquidSwapRemoveLiquidityTask,
 }
 
 
