@@ -1,4 +1,3 @@
-import config
 from src.exceptions import AppValidationError
 
 
