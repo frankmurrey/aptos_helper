@@ -11,6 +11,9 @@ class MinMaxAmountOutValidationMixin(BaseModel):
 
     use_all_balance: Optional[bool] = False
 
+    min_amount_out_range: Optional[tuple]
+    max_amount_out_range: Optional[tuple]
+
     min_amount_out: float
     max_amount_out: float
 
@@ -22,7 +25,17 @@ class MinMaxAmountOutValidationMixin(BaseModel):
                 return 0
 
         value = validation.get_converted_to_float(value, "Min Amount Out")
-        value = validation.get_positive(value, "Min Amount Out", include_zero=False)
+
+        range_value: tuple = values.get("min_amount_out_range")
+        if range_value is not None:
+            if range_value[0] is not None:
+                value = validation.get_greater(value, range_value[0], "Min Amount Out")
+
+            if range_value[1] is not None:
+                value = validation.get_lower(value, range_value[1], "Min Amount Out")
+
+        else:
+            value = validation.get_positive(value, "Min Amount Out", include_zero=False)
 
         return value
 
@@ -37,7 +50,18 @@ class MinMaxAmountOutValidationMixin(BaseModel):
             raise AppValidationError("Min Amount Out is required")
 
         value = validation.get_converted_to_float(value, "Max Amount Out")
-        value = validation.get_positive(value, "Max Amount Out", include_zero=False)
+
+        range_value: tuple = values.get("max_amount_out_range")
+        if range_value is not None:
+            if range_value[0] is not None:
+                value = validation.get_greater(value, range_value[0], "Max Amount Out")
+
+            if range_value[1] is not None:
+                value = validation.get_lower(value, range_value[1], "Max Amount Out")
+
+        else:
+            value = validation.get_positive(value, "Max Amount Out", include_zero=False)
+
         value = validation.get_greater(value, values["min_amount_out"], "Max Amount Out")
 
         return value
