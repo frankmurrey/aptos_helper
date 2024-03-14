@@ -13,9 +13,7 @@ from pystray import MenuItem
 from src.paths import GUI_DIR
 from gui.main_window.sidebar_fame import SidebarFrame
 from gui.right_frame.main_frame import RightFrame
-
-
-from src.templates.templates import Templates
+from src.templates import Templates
 
 
 def run_gui():
