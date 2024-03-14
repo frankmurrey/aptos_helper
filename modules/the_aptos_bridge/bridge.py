@@ -63,7 +63,7 @@ class AptosBridge(ModuleBase):
         )
         return int(fee)
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         if not self.receiver_address or len(self.receiver_address) != config.EVM_ADDRESS_LENGTH:
             logger.error(f"Receiver (Pair address) address is invalid,"
                          f" should be {config.EVM_ADDRESS_LENGTH} char length")
@@ -178,7 +178,7 @@ class AptosBridge(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"
