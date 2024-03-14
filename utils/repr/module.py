@@ -111,8 +111,10 @@ def module_config_table(task: TaskBase):
         "task_id",
         "task_status",
         "reverse_action_task",
-        'result_info',
+        "origin_action_task",
+        "result_info",
         'result_hash',
+        'Callable',
     })
 
     max_key_width = max(len(key) for key in task_dict.keys())
