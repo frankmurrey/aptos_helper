@@ -13,6 +13,7 @@ from gui.modules.txn_settings_frame import TxnSettingFrame
 WITHDRAW_TASKS = {
     enums.ModuleName.ABEL: tasks.AbelWithdrawTask,
     enums.ModuleName.THALA: tasks.ThalaWithdrawTask,
+    enums.ModuleName.THE_APTOS_BRIDGE: tasks.GatorWithdrawTask,
 }
 
 
@@ -128,7 +129,7 @@ class WithdrawLendingFrame(customtkinter.CTkFrame):
         # COIN_X
         self.coin_x = customtkinter.CTkLabel(
             master=self,
-            text="Token to Supply"
+            text="Token to withdraw:"
         )
         self.coin_x.grid(
             row=2,
