@@ -41,7 +41,10 @@ TABS: dict = {
     enums.TabName.SUPPLY_LENDING: Tab(
         tab=modules.SupplyLendingTab,
     ),
-    enums.TabName.WITHDRAW_LENDING: Tab(
+    enums.TabName.DEPOSIT: Tab(
+        tab=modules.DepositLendingTab,
+    ),
+    enums.TabName.WITHDRAW: Tab(
         tab=modules.WithdrawLendingTab,
         spinbox_max_value=1,
     ),
@@ -65,6 +68,12 @@ TABS: dict = {
     ),
     enums.TabName.MERKLE: Tab(
         tab=modules.MerkleTab,
+    ),
+    enums.TabName.MINT: Tab(
+        tab=modules.MintTab,
+    ),
+    enums.TabName.UNSTAKE: Tab(
+        tab=modules.UnstakeTab,
     ),
 }
 
