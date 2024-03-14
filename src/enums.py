@@ -6,6 +6,7 @@ class ModuleType(str, Enum):
     MINT = "mint"
     SUPPLY = "supply"
     BORROW = "borrow"
+    DEPOSIT = "deposit"
     WITHDRAW = "withdraw"
     LIQUIDITY_ADD = "liq_add"
     LIQUIDITY_REMOVE = "liq_remove"
@@ -22,7 +23,6 @@ class ModuleType(str, Enum):
     PLACE_OPEN_ORDER = "open order"
     PLACE_CANCEL_ORDER = "cancel order"
     TRADE = "trade"
-    DEPOSIT = "deposit"
     UNSTAKE = "unstake"
 
 
@@ -49,7 +49,8 @@ class TabName(str, Enum):
     ADD_LIQUIDITY = "Add Liquidity"
     REMOVE_LIQUIDITY = "Remove Liquidity"
     SUPPLY_LENDING = "Supply Lending"
-    WITHDRAW_LENDING = "Withdraw Lending"
+    DEPOSIT = "Deposit"
+    WITHDRAW = "Withdraw"
     TRANSFER = "Transfer"
     BRIDGE = "Aptos Bridge"
     DELEGATE = "Delegate"
@@ -57,9 +58,8 @@ class TabName(str, Enum):
     NFT_COLLECT = "NFT Collect"
     MERKLE = "Merkle"
     TRADE = "Trade"
-    DEPOSIT = "Deposit"
     MINT = "Mint"
-    STAKE = "Stake"
+    UNSTAKE = "Unstake"
 
 
 class TaskStatus(str, Enum):
