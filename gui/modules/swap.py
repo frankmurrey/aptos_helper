@@ -18,6 +18,7 @@ SWAP_TASKS = {
     enums.ModuleName.PANCAKE: tasks.PancakeSwapTask,
     enums.ModuleName.LIQUID_SWAP: tasks.LiquidSwapSwapTask,
     enums.ModuleName.THALA: tasks.ThalaSwapTask,
+    enums.ModuleName.SUSHI: tasks.SushiSwapTask,
 }
 
 
