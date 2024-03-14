@@ -61,10 +61,14 @@ class AmnisUnstake(ModuleBase):
             logger.error(f"Failed to fetch staked balance: {e}")
             return None
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         staked_balance_wei = self.get_staked_balance()
-        if not staked_balance_wei:
+        if staked_balance_wei is None:
             logger.error(f"Failed to fetch staked balance")
+            return None
+
+        if staked_balance_wei == 0:
+            logger.error(f"Staked balance is 0")
             return None
 
         args = [
@@ -89,10 +93,9 @@ class AmnisUnstake(ModuleBase):
         """
         Send transaction
         Returns:
-
         """
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

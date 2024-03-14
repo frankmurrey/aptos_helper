@@ -41,7 +41,7 @@ class Delegate(ModuleBase):
 
         self.coin_x = Tokens().get_by_name("Aptos")
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         wallet_token_balance_wei = self.get_wallet_token_balance(
             wallet_address=self.account.address(),
             token_address=self.coin_x.contract_address
@@ -100,7 +100,7 @@ class Delegate(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

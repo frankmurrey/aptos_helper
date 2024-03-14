@@ -97,7 +97,7 @@ class GatorTrade(GatorBase, MultiCoinModuleBase):
 
         return amount_out_wei
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         market_account = self.get_user_market_account()
         if market_account is None:
             logger.error(f"Failed to fetch trade account")
@@ -160,7 +160,7 @@ class GatorTrade(GatorBase, MultiCoinModuleBase):
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = err_msg
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

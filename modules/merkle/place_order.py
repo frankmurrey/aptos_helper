@@ -1,5 +1,5 @@
 import time
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, Callable
 
 from aptos_sdk.account import Account
 from aptos_sdk.account import AccountAddress
@@ -54,9 +54,11 @@ class MerklePlaceOpenOrder(MerkleModuleBase):
         )
         self.ws_url = "wss://api.prod.merkle.trade/v1"
 
+
     def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
         amount_out_wei = self.calculate_amount_out_from_balance(coin_x=self.coin_x)
         if amount_out_wei is None:
+            logger.error(f"Failed to calculate amount out from balance")
             return None
         fee = self.LONG_FEE_PERCENT if self.task.order_type == enums.OrderType.LONG else self.SHORT_FEE_PERCENT
         amount_out_wei_after_fee = int(amount_out_wei * (1 - fee / 100))
@@ -85,11 +87,10 @@ class MerklePlaceOpenOrder(MerkleModuleBase):
         )
 
         price_impact = calculate_price_impact(
-            market_skew=market_skew,
+            market_skew=round(market_skew, -7),
             size_delta=size_delta_wei,
             skew_factor=pair_info.skew_factor
         )
-
         size_delta_after_price_impact = size_delta_wei + (size_delta_wei * price_impact)
 
         market_price = self.get_market_apt_price(
@@ -107,6 +108,10 @@ class MerklePlaceOpenOrder(MerkleModuleBase):
             price_wei_after_slippage = price_wei_after_slippage * 0.8
             # Order will not be executed due price is lower than market price
             # But execution txn will be sent
+
+        print(size_delta_after_price_impact)
+        print(amount_out_wei)
+        print(price_wei_after_slippage)
 
         args = [
             TransactionArgument(int(size_delta_after_price_impact), Serializer.u64),
@@ -158,30 +163,6 @@ class MerklePlaceOpenOrder(MerkleModuleBase):
             txn_payload=txn_payload_data.payload,
             txn_info_message=txn_info_message
         )
-        ex_status = txn_status.execution_status
-
-        if ex_status != enums.ModuleExecutionStatus.SUCCESS and ex_status != enums.ModuleExecutionStatus.SENT:
-            return txn_status
-
-        if self.task.reverse_action is True:
-            logger.info(f"Waiting 4 seconds before reverse action")
-            time.sleep(4)
-
-            order_type = enums.OrderType.SHORT if self.task.order_type == enums.OrderType.LONG else enums.OrderType.LONG
-            old_task = self.task.dict(exclude={"module_name",
-                                               "module_type",
-                                               "module"})
-
-            task = self.task.reverse_action_task(**old_task)
-
-            reverse_action = MerklePlaceCancelOrder(
-                account=self.account,
-                task=task,
-                base_url=self.base_url,
-                wallet_data=self.wallet_data,
-            )
-            reverse_txn_status = reverse_action.send_txn()
-            return reverse_txn_status
 
         return txn_status
 
@@ -249,7 +230,7 @@ class MerklePlaceCancelOrder(MerkleModuleBase):
                 continue
 
             if int(user_position_data.collateral) != 0:
-                logger.info(f"Position found after {counter} tries")
+                logger.info(f"Position found after {counter + 1} tries")
                 return user_position_data
 
             counter += 1
@@ -259,7 +240,7 @@ class MerklePlaceCancelOrder(MerkleModuleBase):
             logger.error(f"Error getting user position data after {tries_count} tries")
             return None
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         position = self.trade_position_wait_loop()
         if position is None:
             logger.error("Error getting user position data")
@@ -288,13 +269,25 @@ class MerklePlaceCancelOrder(MerkleModuleBase):
             pair_state=pair_state
         )
         price_wei = int(market_price * 10 ** 10)
+        price_wei_after_slippage = int(price_wei * (1 + (self.task.slippage / 100)))
         take_profit_trigger = int(price_wei * 0.9 if is_long else price_wei * 1.1)
         can_execute_above_price = True
+
+        print(size_delta_wei)
+        print(collateral_wei)
+        print(price_wei_after_slippage)
+        print(is_long)
+        print(is_increase)
+        print(is_market)
+        print(stop_loss_trigger)
+        print(take_profit_trigger)
+        print(can_execute_above_price)
+
 
         args = [
             TransactionArgument(int(size_delta_wei), Serializer.u64),
             TransactionArgument(int(collateral_wei), Serializer.u64),
-            TransactionArgument(int(price_wei), Serializer.u64),
+            TransactionArgument(int(price_wei_after_slippage), Serializer.u64),
             TransactionArgument(is_long, Serializer.bool),
             TransactionArgument(is_increase, Serializer.bool),
             TransactionArgument(is_market, Serializer.bool),
@@ -327,7 +320,7 @@ class MerklePlaceCancelOrder(MerkleModuleBase):
             self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
             return self.module_execution_result
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

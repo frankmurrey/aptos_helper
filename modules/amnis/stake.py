@@ -44,7 +44,7 @@ class AmnisMintAndStake(SingleCoinModuleBase):
             "0x111ae3e5bc816a5e63c2da97d0aa3886519e0cd5e4b046659fa35796bd11542a"
         )
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         amount_out_wei = self.calculate_amount_out_from_balance(self.coin_x)
         if not amount_out_wei:
             logger.error(f"Failed to calculate amount out from balance")
@@ -78,7 +78,7 @@ class AmnisMintAndStake(SingleCoinModuleBase):
             self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
             return self.module_execution_result
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

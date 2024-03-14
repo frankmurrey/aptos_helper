@@ -64,7 +64,7 @@ class Unlock(ModuleBase):
 
         return int(response_json[0])
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         validator_address = AccountAddress.from_hex(self.task.validator_address)
 
         current_staked_balance = self.get_current_staked_balance(
@@ -100,7 +100,7 @@ class Unlock(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

@@ -107,12 +107,14 @@ class LiquidSwapSwap(SwapModuleBase):
     ) -> Union[int, None]:
         tokens_reserve: dict = self.get_token_pair_reserve(pool_type="Stable")
         if tokens_reserve is None:
+            logger.error(f"Error getting token pair reserve, Stable pool")
             return None
 
         reserve_x = int(tokens_reserve[coin_x_address])
         reserve_y = int(tokens_reserve[coin_y_address])
 
         if reserve_x is None or reserve_y is None:
+            logger.error(f"Error getting token pair reserve, Stable pool")
             return None
 
         pool_fee = int(self.resource_data["data"]["fee"])
@@ -137,12 +139,14 @@ class LiquidSwapSwap(SwapModuleBase):
         tokens_reserve: dict = self.get_token_pair_reserve(pool_type="Uncorrelated")
 
         if tokens_reserve is None:
+            logger.error(f"Error getting token pair reserve, Uncorrelated pool")
             return None
 
         reserve_x = int(tokens_reserve[coin_x_address])
         reserve_y = int(tokens_reserve[coin_y_address])
 
         if reserve_x is None or reserve_y is None:
+            logger.error(f"Error getting token pair reserve, Uncorrelated pool")
             return None
 
         pool_fee = int(self.resource_data["data"]["fee"])
@@ -173,6 +177,7 @@ class LiquidSwapSwap(SwapModuleBase):
         )
 
         if stable_pool_amount_in is None:
+            logger.error(f"Error while getting amount in, Stable pool")
             return None
 
         uncorrelated_pool_amount_in = self.get_amount_in_uncorrelated_pool(
@@ -182,6 +187,7 @@ class LiquidSwapSwap(SwapModuleBase):
         )
 
         if uncorrelated_pool_amount_in is None:
+            logger.error(f"Error while getting amount in, Uncorrelated pool")
             return None
 
         if stable_pool_amount_in > uncorrelated_pool_amount_in:
@@ -191,7 +197,7 @@ class LiquidSwapSwap(SwapModuleBase):
         self.pool_type = "Uncorrelated"
         return uncorrelated_pool_amount_in
 
-    def build_transaction_payload(self):
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         amount_out_wei = self.calculate_amount_out_from_balance(coin_x=self.coin_x)
         amount_in_wei = self.get_most_profitable_amount_in_and_set_pool_type(
             amount_out=amount_out_wei,
@@ -202,6 +208,7 @@ class LiquidSwapSwap(SwapModuleBase):
         )
 
         if amount_out_wei is None or amount_in_wei is None:
+            logger.error(f"Error while building transaction payload")
             return None
 
         amount_out_decimals = amount_out_wei / 10 ** self.token_x_decimals
@@ -229,37 +236,37 @@ class LiquidSwapSwap(SwapModuleBase):
             amount_y_decimals=amount_in_decimals
         )
 
-    def build_reverse_transaction_payload(self):
+    def build_reverse_txn_payload_data(self):
         wallet_y_balance_wei = self.get_wallet_token_balance(
             wallet_address=self.account.address(),
-            token_address=self.coin_y.contract_address
+            token_address=self.coin_x.contract_address
         )
 
         if wallet_y_balance_wei == 0:
-            logger.error(f"Wallet {self.coin_y.symbol.upper()} balance = 0")
+            logger.error(f"Wallet {self.coin_x.symbol.upper()} balance = 0")
             return None
 
-        if self.initial_balance_y_wei is None:
-            logger.error(f"Error while getting initial balance of {self.coin_y.symbol.upper()}")
+        if self.initial_balance_x_wei is None:
+            logger.error(f"Error while getting initial balance of {self.coin_x.symbol.upper()}")
             return None
 
-        amount_out_y_wei = wallet_y_balance_wei - self.initial_balance_y_wei
+        amount_out_y_wei = wallet_y_balance_wei - self.initial_balance_x_wei
         if amount_out_y_wei <= 0:
-            logger.error(f"Wallet {self.coin_y.symbol.upper()} balance less than initial balance")
+            logger.error(f"Wallet {self.coin_x.symbol.upper()} balance less than initial balance")
             return None
 
         amount_in_x_wei = self.get_most_profitable_amount_in_and_set_pool_type(
             amount_out=amount_out_y_wei,
-            coin_x_address=self.coin_y.contract_address,
-            coin_y_address=self.coin_x.contract_address,
-            coin_x_decimals=self.token_y_decimals,
-            coin_y_decimals=self.token_x_decimals
+            coin_x_address=self.coin_x.contract_address,
+            coin_y_address=self.coin_y.contract_address,
+            coin_x_decimals=self.token_x_decimals,
+            coin_y_decimals=self.token_y_decimals
         )
         if amount_in_x_wei is None:
             return None
 
-        amount_out_y_decimals = amount_out_y_wei / 10 ** self.token_y_decimals
-        amount_in_x_decimals = amount_in_x_wei / 10 ** self.token_x_decimals
+        amount_out_y_decimals = amount_out_y_wei / 10 ** self.token_x_decimals
+        amount_in_x_decimals = amount_in_x_wei / 10 ** self.token_y_decimals
 
         transaction_args = [
             TransactionArgument(int(amount_out_y_wei), Serializer.u64),
@@ -269,8 +276,8 @@ class LiquidSwapSwap(SwapModuleBase):
             f"{self.router_address}::scripts_v2",
             "swap",
             [
-                TypeTag(StructTag.from_str(self.coin_y.contract_address)),
                 TypeTag(StructTag.from_str(self.coin_x.contract_address)),
+                TypeTag(StructTag.from_str(self.coin_y.contract_address)),
                 TypeTag(StructTag.from_str(f"{self.router_address}::curves::{self.pool_type}"))
             ],
             transaction_args
@@ -281,47 +288,3 @@ class LiquidSwapSwap(SwapModuleBase):
             amount_x_decimals=amount_out_y_decimals,
             amount_y_decimals=amount_in_x_decimals
         )
-
-    def send_txn(self) -> ModuleExecutionResult:
-        if self.check_local_tokens_data() is False:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
-            return self.module_execution_result
-
-        txn_payload_data = self.build_transaction_payload()
-        if txn_payload_data is None:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = "Error while building transaction payload"
-            return self.module_execution_result
-
-        txn_status = self.send_swap_type_txn(
-            account=self.account,
-            txn_payload_data=txn_payload_data
-        )
-
-        ex_status = txn_status.execution_status
-
-        if ex_status != enums.ModuleExecutionStatus.SUCCESS and ex_status != enums.ModuleExecutionStatus.SENT:
-            return txn_status
-
-        if self.task.reverse_action is True:
-            delay = get_delay(self.task.min_delay_sec, self.task.max_delay_sec)
-            logger.info(f"Waiting {delay} seconds before reverse action")
-            time.sleep(delay)
-
-            reverse_txn_payload_data = self.build_reverse_transaction_payload()
-            if reverse_txn_payload_data is None:
-                self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-                self.module_execution_result.execution_info = "Error while building reverse transaction payload"
-                return self.module_execution_result
-
-            reverse_txn_status = self.send_swap_type_txn(
-                account=self.account,
-                txn_payload_data=reverse_txn_payload_data,
-                is_reverse=True
-            )
-
-            return reverse_txn_status
-
-        return txn_status
-

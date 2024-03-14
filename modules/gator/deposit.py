@@ -65,7 +65,7 @@ class GatorDeposit(GatorBase, SingleCoinModuleBase):
             txn_info_message="Create trade account"
         )
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         """
         Build transaction payload for depositing to trade account
         Returns:
@@ -115,7 +115,7 @@ class GatorDeposit(GatorBase, SingleCoinModuleBase):
                 logger.error(f"Failed to create trade account")
                 return account_creation_result
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

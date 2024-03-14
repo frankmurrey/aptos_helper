@@ -1,6 +1,6 @@
 import random
 import time
-from typing import TYPE_CHECKING, Union, Any
+from typing import TYPE_CHECKING, Union, Any, Callable
 
 from aptos_sdk.account import Account
 from aptos_sdk.account import AccountAddress
@@ -10,9 +10,7 @@ from aptos_sdk.transactions import RawTransaction
 from aptos_sdk.transactions import TransactionPayload
 from aptos_sdk.transactions import EntryFunction
 from aptos_sdk.async_client import ClientConfig
-from aptos_sdk.client import ResourceNotFound
 from aptos_sdk.client import ApiError
-from httpx import ReadTimeout
 from loguru import logger
 
 from contracts.base import TokenBase
@@ -25,6 +23,7 @@ from src.schemas.action_models import ModuleExecutionResult
 from src.schemas.action_models import TransactionSimulationResult
 from src.schemas.action_models import TransactionReceipt
 from src.schemas.action_models import TransactionPayloadData
+from src.execution_storage import ExecutionStorage
 
 
 if TYPE_CHECKING:
@@ -48,14 +47,18 @@ class ModuleBase:
         self.base_url = base_url
         self.task = task
         self.account = account
-        self.wallet_data = wallet_data
         self.client = CustomRestClient(base_url=base_url, proxies=proxies)
         self.gecko_pricer = GeckoPricer(client=self.client)
         self.storage = Storage()
         self.tokens = Tokens()
         self.proxies = proxies
+        self.is_task_virtual = getattr(task, 'is_virtual', False)
 
         self.task = task
+        self.wallet_data = wallet_data
+
+        self.execution_storage = ExecutionStorage()
+
         self.module_execution_result = ModuleExecutionResult()
 
     def get_random_amount_out_of_token(
@@ -411,9 +414,23 @@ class ModuleBase:
 
         return simulation_result
 
-    def send_txn(self):
+    def build_txn_payload_data(self) -> TransactionPayloadData:
         """
-        Abstract method for sending a transaction.
+        ABC method for building transaction payload data. Must be implemented in child classes.
+        :return:
+        """
+        raise NotImplementedError
+
+    def build_reverse_txn_payload_data(self) -> TransactionPayloadData:
+        """
+        ABC method for building reverse transaction payload data. Must be implemented in child classes.
+        :return:
+        """
+        raise NotImplementedError
+
+    def send_txn(self) -> ModuleExecutionResult:
+        """
+        ABC method for sending a transaction. Must be implemented in child classes.
         :return:
         """
         raise NotImplementedError
@@ -487,8 +504,6 @@ class ModuleBase:
         if simulation_status.result == enums.TransactionStatus.FAILED:
             err_msg = f"Transaction simulation failed. Status: {simulation_status.vm_status}"
             logger.error(err_msg)
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.FAILED.value
-            self.module_execution_result.execution_info = err_msg
             return self.module_execution_result
 
         logger.success(f"Transaction simulation success. Gas used: {simulation_status.gas_used}")
@@ -516,7 +531,6 @@ class ModuleBase:
             err_msg = f"Transaction submission failed"
             logger.error(err_msg)
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.FAILED.value
-            self.module_execution_result.execution_info = err_msg
             return self.module_execution_result
 
         if self.task.wait_for_receipt is True:
@@ -540,15 +554,12 @@ class ModuleBase:
             elif txn_receipt.status == enums.TransactionStatus.FAILED:
                 msg = f"Transaction failed, vm status: {txn_receipt.vm_status}. Txn Hash: {tx_hash}"
                 logger.error(msg)
-                self.module_execution_result.execution_status = enums.ModuleExecutionStatus.FAILED.value
-                self.module_execution_result.execution_info = msg
+                logger.error(msg)
                 self.module_execution_result.hash = tx_hash
 
             elif txn_receipt.status == enums.TransactionStatus.TIME_OUT:
                 msg = f"Transaction timeout, vm status: {txn_receipt.vm_status}. Txn Hash: {tx_hash}"
                 logger.error(msg)
-                self.module_execution_result.execution_status = enums.ModuleExecutionStatus.TIME_OUT.value
-                self.module_execution_result.execution_info = msg
                 self.module_execution_result.hash = tx_hash
 
         else:
@@ -579,15 +590,29 @@ class SingleCoinModuleBase(ModuleBase):
         )
         random_coin_y = getattr(self.task, "random_coin_y", None)
         if not random_coin_y == enums.MiscTypes.RANDOM:
-
             coin_x_symbol = getattr(self.task, "coin_x")
             self.coin_x = self.tokens.get_by_name(coin_x_symbol)
-
-            self.initial_balance_x_wei = self.get_wallet_token_balance(
-                wallet_address=self.account.address(),
-                token_address=self.coin_x.contract_address
-            )
             self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
+
+            if not self.is_task_virtual:
+
+                self.initial_balance_x_wei = self.get_wallet_token_balance(
+                    wallet_address=self.account.address(),
+                    token_address=self.coin_x.contract_address
+                )
+
+    async def set_fetched_data_to_exec_storage(self):
+        """
+        Sets fetched data to execution storage
+        :return:
+        """
+        self.execution_storage.set_pre_execution_data(
+            wallet_id=self.wallet_data.wallet_id,
+            task_id=self.task.task_id,
+            data={
+                'initial_balance_x_wei': self.initial_balance_x_wei,
+            },
+        )
 
     def check_local_tokens_data(self) -> bool:
         """
@@ -629,10 +654,11 @@ class SingleCoinModuleBase(ModuleBase):
             amount_out_wei = int(self.initial_balance_x_wei * percent)
 
         elif initial_balance_x_decimals < min_amount_out:
-            logger.error(
+            err_msg = (
                 f"Wallet {coin_x.symbol.upper()} balance less than min amount out, "
                 f"balance: {initial_balance_x_decimals}, min amount out: {min_amount_out}"
             )
+            logger.error(err_msg)
             return None
 
         elif initial_balance_x_decimals < max_amount_out:
@@ -675,34 +701,54 @@ class MultiCoinModuleBase(ModuleBase):
             account=account,
             wallet_data=wallet_data
         )
+
         random_coin_y = getattr(task, "random_coin_y", None)
         if not random_coin_y == enums.MiscTypes.RANDOM:
 
-            # COIN X
             coin_x_symbol = getattr(self.task, "coin_x")
-            self.coin_x = self.tokens.get_by_name(coin_x_symbol)
+            coin_y_symbol = getattr(self.task, "coin_y")
 
-            self.initial_balance_x_wei = self.get_wallet_token_balance(
-                wallet_address=self.account.address(),
-                token_address=self.coin_x.contract_address
-            )
+            self.coin_x = self.tokens.get_by_name(coin_x_symbol)
             self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
 
-            # COIN Y
-            coin_y_symbol = getattr(task, "coin_y")
             self.coin_y = self.tokens.get_by_name(coin_y_symbol)
-            self.initial_balance_y_wei = self.get_wallet_token_balance(
-                wallet_address=self.account.address(),
-                token_address=self.coin_y.contract_address
-            )
             self.token_y_decimals = self.get_token_decimals(token_obj=self.coin_y)
+
+            if not self.is_task_virtual:
+
+                # COIN X
+                self.initial_balance_x_wei = self.get_wallet_token_balance(
+                    wallet_address=self.account.address(),
+                    token_address=self.coin_x.contract_address
+                )
+
+                # COIN Y
+                self.initial_balance_y_wei = self.get_wallet_token_balance(
+                    wallet_address=self.account.address(),
+                    token_address=self.coin_y.contract_address
+                )
+
+    def set_fetched_data_to_exec_storage(self):
+        """
+        Sets fetched data to execution storage
+        :return:
+        """
+        if not self.task.is_virtual:
+
+            self.execution_storage.set_pre_execution_data(
+                wallet_id=self.wallet_data.wallet_id,
+                task_id=self.task.task_id,
+                data={
+                    'initial_balance_x_wei': self.initial_balance_x_wei,
+                    'initial_balance_y_wei': self.initial_balance_y_wei
+                },
+            )
 
     def check_local_tokens_data(self) -> bool:
         """
         Checks if token decimals are fetched.
         :return:
         """
-
         if self.token_x_decimals is None or self.token_y_decimals is None:
             logger.error(f"Token decimals not fetched")
             return False
@@ -737,10 +783,11 @@ class MultiCoinModuleBase(ModuleBase):
             amount_out_wei = int(self.initial_balance_x_wei * percent)
 
         elif initial_balance_x_decimals < min_amount_out:
-            logger.error(
+            err_msg = (
                 f"Wallet {coin_x.symbol.upper()} balance less than min amount out, "
                 f"balance: {initial_balance_x_decimals}, min amount out: {min_amount_out}"
             )
+            logger.error(err_msg)
             return None
 
         elif initial_balance_x_decimals < max_amount_out:
@@ -778,31 +825,51 @@ class SwapModuleBase(MultiCoinModuleBase):
             account=account,
             wallet_data=wallet_data
         )
-        self.account = account
 
-    def send_swap_type_txn(
-            self,
-            account: Account,
-            txn_payload_data: TransactionPayloadData,
-            is_reverse: bool = False
-    ) -> ModuleExecutionResult:
+        if self.task.is_virtual:
+
+            # COIN X
+            self.coin_x = self.tokens.get_by_name(self.task.coin_y)
+            self.initial_balance_x_wei = self.execution_storage.get_by_wallet_id_and_task_id(
+                wallet_id=self.wallet_data.wallet_id,
+                task_id=self.task.task_id
+            ).get('initial_balance_y_wei')
+            self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
+
+            # COIN Y
+            self.coin_y = self.tokens.get_by_name(self.task.coin_x)
+            self.initial_balance_y_wei = self.execution_storage.get_by_wallet_id_and_task_id(
+                wallet_id=self.wallet_data.wallet_id,
+                task_id=self.task.task_id
+            ).get('initial_balance_x_wei')
+            self.token_y_decimals = self.get_token_decimals(token_obj=self.coin_y)
+
+            self.build_transaction_payload: Callable = self.build_reverse_txn_payload_data
+
+    def send_txn(self) -> ModuleExecutionResult:
         """
-        Sends swap type transaction, if reverse action is enabled in task, sends reverse swap type transaction
-        :param account:
-        :param txn_payload_data:
-        :param is_reverse:
+        Sends transaction
         :return:
         """
 
-        self.task: 'SwapTaskBase'
-        module_name = self.task.module_name.title()
+        self.set_fetched_data_to_exec_storage()
+
+        if self.check_local_tokens_data() is False:
+            logger.error(f"Failed to fetch local tokens data in swap module")
+            return self.module_execution_result
+
+        txn_payload_data = self.build_transaction_payload()
+        if txn_payload_data is None:
+            logger.error(f"Failed to build transaction payload data")
+            return self.module_execution_result
 
         out_decimals = txn_payload_data.amount_x_decimals
         in_decimals = txn_payload_data.amount_y_decimals
 
-        coin_x_symbol = self.coin_x.symbol.upper() if is_reverse is False else self.coin_y.symbol.upper()
-        coin_y_symbol = self.coin_y.symbol.upper() if is_reverse is False else self.coin_x.symbol.upper()
+        coin_x_symbol = self.coin_x.symbol.upper()
+        coin_y_symbol = self.coin_y.symbol.upper()
 
+        module_name = self.task.module_name.title()
         txn_info_message = f"Swap ({module_name}) | " \
                            f"{out_decimals} ({coin_x_symbol}) -> " \
                            f"{in_decimals} ({coin_y_symbol}). " \
@@ -839,7 +906,7 @@ class SwapModuleBase(MultiCoinModuleBase):
             )
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
-            account=account,
+            account=self.account,
             txn_payload=txn_payload_data.payload,
             txn_info_message=""
         )
@@ -865,19 +932,23 @@ class LiquidityModuleBase(MultiCoinModuleBase):
             account=account,
             wallet_data=wallet_data
         )
-        self.account = account
 
-    def send_liquidity_type_txn(
-            self,
-            account: Account,
-            txn_payload_data: TransactionPayloadData
-    ) -> ModuleExecutionResult:
+    def send_txn(self) -> ModuleExecutionResult:
         """
-        Sends liquidity type transaction
-        :param account:
-        :param txn_payload_data:
+          Sends transaction
         :return:
         """
+
+        self.set_fetched_data_to_exec_storage()
+
+        if self.check_local_tokens_data() is False:
+            logger.error(f"Failed to fetch local tokens data in swap module")
+            return self.module_execution_result
+
+        txn_payload_data = self.build_txn_payload_data()
+        if txn_payload_data is None:
+            logger.error(f"Failed to build transaction payload data")
+            return self.module_execution_result
 
         module_name = self.task.module_name.title()
         module_type = ("Add liquidity" if self.task.module_type == enums.ModuleType.LIQUIDITY_ADD
@@ -889,7 +960,7 @@ class LiquidityModuleBase(MultiCoinModuleBase):
                            f"Slippage: {self.task.slippage}%."
 
         txn_status = self.simulate_and_send_transfer_type_transaction(
-            account=account,
+            account=self.account,
             txn_payload=txn_payload_data.payload,
             txn_info_message=txn_info_message
         )

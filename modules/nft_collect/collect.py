@@ -91,6 +91,7 @@ class NftCollect(ModuleBase):
         try:
             all_collectibles = self.get_all_collectibles_data_for_wallet(wallet_address)
             if all_collectibles is None:
+                logger.error(f"Failed while getting collectibles list for wallet")
                 return None
 
             v2_collectibles = []
@@ -104,7 +105,7 @@ class NftCollect(ModuleBase):
             logger.error(f"Error while getting pools data: {e}")
             return None
 
-    def build_transaction_payload(
+    def build_txn_payload_data(
             self,
             token_address: str
     ) -> Union[TransactionPayloadData, None]:
@@ -151,7 +152,7 @@ class NftCollect(ModuleBase):
                 logger.error(f"{index + 1} NFT address is not found in collectible: {collectible}")
                 continue
 
-            payload = self.build_transaction_payload(token_address)
+            payload = self.build_txn_payload_data(token_address)
             if payload is None:
                 self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
                 self.module_execution_result.execution_info = "Error while building transaction payload"

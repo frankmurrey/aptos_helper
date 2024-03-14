@@ -9,6 +9,8 @@ from src.schemas import tasks
 SWAP_TASKS = [
     tasks.LiquidSwapSwapTask,
     tasks.PancakeSwapTask,
+    tasks.SushiSwapTask,
+    tasks.ThalaSwapTask
 ]
 
 
@@ -28,7 +30,7 @@ class RandomSwap(SwapModuleBase):
             proxies=proxies,
             wallet_data=wallet_data
         )
-
+        print(task)
         random_task_class = random.choice(SWAP_TASKS)
         task_dict = self.task.dict(exclude={"module_name",
                                             "module_type",
@@ -72,6 +74,7 @@ class RandomSwap(SwapModuleBase):
         random_task: SwapTaskBase = random_task_class(**task_dict)
 
         module = random_task.module(
+            wallet_data=self.wallet_data,
             account=self.account,
             task=random_task,
             base_url=self.base_url,

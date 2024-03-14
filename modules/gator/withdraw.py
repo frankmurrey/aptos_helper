@@ -38,7 +38,7 @@ class GatorWithdraw(GatorBase, SingleCoinModuleBase):
             wallet_data=wallet_data
         )
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         """
         Build transaction payload for depositing to trade account
         Returns:
@@ -88,10 +88,8 @@ class GatorWithdraw(GatorBase, SingleCoinModuleBase):
         if not account_exists:
             err_msg = f"Trade account does not exist, please first make deposit through Deposit module"
             logger.error(err_msg)
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = err_msg
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

@@ -127,6 +127,7 @@ class LiquidSwapAddLiquidity(LiquidityBase):
         response = self.client.client.get(url=url, params=payload)
 
         if response.status_code == 200:
+            logger.error(f"Error getting staked pair balance: {response.text}")
             return response.json()
         else:
             return None
@@ -140,6 +141,7 @@ class LiquidSwapAddLiquidity(LiquidityBase):
         reserve_y = int(tokens_reserve_data[self.coin_y.contract_address])
 
         if reserve_x is None or reserve_y is None:
+            logger.error(f"Error getting token pair reserve")
             return None
 
         amount_in = get_optimal_liquidity_amount(
@@ -150,9 +152,10 @@ class LiquidSwapAddLiquidity(LiquidityBase):
 
         return amount_in
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         tokens_reserve_data: dict = self.get_token_pair_reserve()
         if tokens_reserve_data is None:
+            logger.error(f"Error getting token pair reserve")
             return None
 
         if self.initial_balance_x_wei == 0 or self.initial_balance_y_wei == 0:
@@ -210,50 +213,6 @@ class LiquidSwapAddLiquidity(LiquidityBase):
             amount_y_decimals=amount_out_y / 10 ** self.token_y_decimals
         )
 
-    def send_txn(self) -> ModuleExecutionResult:
-        if self.check_local_tokens_data() is False:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
-            return self.module_execution_result
-
-        txn_payload_data = self.build_transaction_payload()
-        if txn_payload_data is None:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = "Error while building transaction payload"
-            return self.module_execution_result
-
-        txn_status = self.send_liquidity_type_txn(
-            account=self.account,
-            txn_payload_data=txn_payload_data
-        )
-
-        ex_status = txn_status.execution_status
-
-        if ex_status != enums.ModuleExecutionStatus.SUCCESS and ex_status != enums.ModuleExecutionStatus.SENT:
-            return txn_status
-
-        if self.task.reverse_action is True:
-            delay = get_delay(self.task.min_delay_sec, self.task.max_delay_sec)
-            logger.info(f"Waiting {delay} seconds before reverse action")
-            time.sleep(delay)
-
-            old_task = self.task.dict(exclude={"module_name",
-                                               "module_type",
-                                               "module"})
-
-            task = self.task.reverse_action_task(**old_task)
-
-            reverse_action = LiquidSwapRemoveLiquidity(
-                account=self.account,
-                task=task,
-                base_url=self.base_url,
-                wallet_data=self.wallet_data
-            )
-            reverse_txn_status = reverse_action.send_txn()
-            return reverse_txn_status
-
-        return txn_status
-
 
 class LiquidSwapRemoveLiquidity(LiquidityBase):
     def __init__(
@@ -284,6 +243,7 @@ class LiquidSwapRemoveLiquidity(LiquidityBase):
         token_reserve = self.get_token_pair_reserve()
         if token_reserve is None:
             logger.error(f"Error while fetching token reserve")
+            return None
 
         reserve_x = token_reserve.get(self.coin_x.contract_address)
         reserve_y = token_reserve.get(self.coin_y.contract_address)
@@ -324,10 +284,11 @@ class LiquidSwapRemoveLiquidity(LiquidityBase):
             "amount_out_y": out_y_with_slippage
         }
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
 
         lp_burn_output = self.get_amounts_out(wallet_address=self.account.address())
         if not lp_burn_output:
+            logger.error(f"Error while fetching amounts out")
             return None
 
         lp_amount_to_burn = lp_burn_output['to_burn']
@@ -357,20 +318,3 @@ class LiquidSwapRemoveLiquidity(LiquidityBase):
             amount_y_decimals=min_amount_y / 10 ** self.token_y_decimals
         )
 
-    def send_txn(self) -> ModuleExecutionResult:
-        if self.check_local_tokens_data() is False:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
-            return self.module_execution_result
-
-        txn_payload_data = self.build_transaction_payload()
-        if txn_payload_data is None:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = "Error while building transaction payload"
-            return self.module_execution_result
-
-        txn_status = self.send_liquidity_type_txn(
-            account=self.account,
-            txn_payload_data=txn_payload_data
-        )
-        return txn_status

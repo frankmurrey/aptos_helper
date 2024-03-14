@@ -1,6 +1,6 @@
 import random
 import time
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, Callable
 
 
 from aptos_sdk.account import Account
@@ -11,7 +11,7 @@ from aptos_sdk.type_tag import TypeTag
 from aptos_sdk.type_tag import StructTag
 from loguru import logger
 
-from modules.base import ModuleBase
+from modules.base import SingleCoinModuleBase
 from modules.abel.redeem import AbleFinanceRedeem
 from src import enums
 from utils.delay import get_delay
@@ -22,9 +22,10 @@ from src.schemas.wallet_data import WalletData
 
 if TYPE_CHECKING:
     from src.schemas.tasks import AbelSupplyTask
+    from src.schemas.tasks import AbelWithdrawTask
 
 
-class AbleFinanceMint(ModuleBase):
+class AbleFinanceMint(SingleCoinModuleBase):
     store_address: str = "0xc0188ad3f42e66b5bd3596e642b8f72749b67d84e6349ce325b27117a9406bdf::acoin::ACoinStore"
     lend_address: str = "0xc0188ad3f42e66b5bd3596e642b8f72749b67d84e6349ce325b27117a9406bdf::acoin_lend"
 
@@ -45,14 +46,6 @@ class AbleFinanceMint(ModuleBase):
         )
         self.account = account
         self.task = task
-
-        self.coin_x = self.tokens.get_by_name(self.task.coin_x)
-
-        self.initial_balance_x_wei = self.get_wallet_token_balance(
-            wallet_address=self.account.address(),
-            token_address=self.coin_x.contract_address
-        )
-        self.token_x_decimals = self.get_token_decimals(token_obj=self.coin_x)
 
     def calculate_amount_out_from_balance(
             self,
@@ -121,10 +114,13 @@ class AbleFinanceMint(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        if self.initial_balance_x_wei is None or self.token_x_decimals is None:
+        self.set_fetched_data_to_exec_storage()
+
+        if self.check_local_tokens_data() is False:
+            logger.error("Error while checking local tokens data")
             return self.module_execution_result
 
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"
