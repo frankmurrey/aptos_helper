@@ -298,7 +298,10 @@ class MerkleFrame(customtkinter.CTkFrame):
 
         text = (f"Pair: APT/USDC\n"
                 f"Pseudo order will not be actually executed, but will be "
-                f"counted as executed for quest.")
+                f"counted as executed for quest."
+                f"Min collateral: 2 USDC\n"
+                f"Leverage calculated automatically"
+                )
 
         self.info_textbox = CTkCustomTextBox(
             master=self,
@@ -317,7 +320,6 @@ class MerkleFrame(customtkinter.CTkFrame):
         action = self.action_combo.get().lower()
         if action == enums.ModuleType.PLACE_CANCEL_ORDER:
             state = "disabled"
-            self.order_type_combo.configure(state=state)
 
             self.reverse_action_checkbox.deselect()
             self.reverse_action_checkbox.configure(state=state)
