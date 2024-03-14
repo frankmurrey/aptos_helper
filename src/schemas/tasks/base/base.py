@@ -34,6 +34,8 @@ class TaskBase(BaseModel):
     class Config:
         extra = "allow"
 
+    is_virtual: bool = False
+
     module_type: enums.ModuleType
     module_name: enums.ModuleName
     module: Optional[Callable]
@@ -56,6 +58,7 @@ class TaskBase(BaseModel):
 
     reverse_action: bool = False
     reverse_action_task: Optional[Callable] = None
+    origin_action_task: Optional[Callable] = None
 
     reverse_action_min_delay_sec: int = 1
     reverse_action_max_delay_sec: int = 2

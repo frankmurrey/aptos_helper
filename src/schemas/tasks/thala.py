@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from pydantic import Field
 
 from src.schemas.tasks.base.swap import SwapTaskBase
@@ -15,10 +15,20 @@ from modules.thala.supply import ThalaWithdraw
 from src import enums
 
 
-class ThalaSwapTask(SwapTaskBase):
+class ThalaSwapReverseTask(SwapTaskBase):
     module_name: enums.ModuleName = enums.ModuleName.THALA
     module_type: enums.ModuleType = enums.ModuleType.SWAP
     module: Callable = Field(default=ThalaSwap)
+
+
+class ThalaSwapTask(SwapTaskBase):
+    module_name: enums.ModuleName = enums.ModuleName.THALA
+    module_type: enums.ModuleType = enums.ModuleType.SWAP
+    module: Callable = Field(default=ThalaSwapReverseTask)
+    reverse_action_task: Optional[Callable] = Field(default=ThalaSwapReverseTask)
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ThalaRemoveLiquidityTask(RemoveLiquidityTaskBase):
@@ -31,7 +41,7 @@ class ThalaAddLiquidityTask(AddLiquidityTaskBase):
     module_name = enums.ModuleName.THALA
     module_type = enums.ModuleType.LIQUIDITY_ADD
     module: Callable = Field(default=ThalaAddLiquidity)
-    reverse_action_task: Callable = Field(default=ThalaRemoveLiquidityTask)
+    reverse_action_task: Optional[Callable] = Field(default=ThalaRemoveLiquidityTask)
 
     class Config:
         arbitrary_types_allowed = True

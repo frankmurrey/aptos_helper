@@ -3,7 +3,6 @@ from pydantic import Field
 
 from src import enums
 from src.schemas.tasks import TaskBase
-from src.schemas.tasks import WithdrawTaskBase
 from src.schemas import validation_mixins
 
 from modules.amnis.stake import AmnisMintAndStake
@@ -23,8 +22,18 @@ class AmnisMintAndStakeTask(
     min_amount_out = 0.2
     max_amount_out = 0.2
 
+    @property
+    def action_info(self):
+        return f"Mint & Stake"
+
 
 class AmnisUnstakeTask(TaskBase):
     module_name: enums.ModuleName = enums.ModuleName.AMNIS
     module_type: enums.ModuleType = enums.ModuleType.UNSTAKE
     module: Callable = Field(default=AmnisUnstake)
+
+    coin_x: str = "amAPT"
+
+    @property
+    def action_info(self):
+        return self.coin_x

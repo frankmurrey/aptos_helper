@@ -1,3 +1,4 @@
+from typing import Optional, Callable
 from pydantic import Field
 from modules.random.swap import RandomSwap
 

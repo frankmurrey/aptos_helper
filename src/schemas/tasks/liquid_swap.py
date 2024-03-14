@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from pydantic import Field
 
 from src.schemas.tasks.base.swap import SwapTaskBase
@@ -10,16 +10,26 @@ from modules.liquid_swap.liquidity import LiquidSwapRemoveLiquidity
 from src import enums
 
 
-class LiquidSwapSwapTask(SwapTaskBase):
+class LiquidSwapSwapReverseTask(SwapTaskBase):
     module_name: enums.ModuleName = enums.ModuleName.LIQUID_SWAP
     module_type: enums.ModuleType = enums.ModuleType.SWAP
     module: Callable = Field(default=LiquidSwapSwap)
 
 
+class LiquidSwapSwapTask(SwapTaskBase):
+    module_name: enums.ModuleName = enums.ModuleName.LIQUID_SWAP
+    module_type: enums.ModuleType = enums.ModuleType.SWAP
+    module: Callable = Field(default=LiquidSwapSwap)
+    reverse_action_task: Optional[Callable] = Field(default=LiquidSwapSwapReverseTask)
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
 class LiquidSwapRemoveLiquidityTask(RemoveLiquidityTaskBase):
     module_name = enums.ModuleName.LIQUID_SWAP
     module_type = enums.ModuleType.LIQUIDITY_REMOVE
-    module: Callable = Field(default=LiquidSwapRemoveLiquidity)
+    module: Optional[Callable] = Field(default=LiquidSwapRemoveLiquidity)
 
 
 class LiquidSwapAddLiquidityTask(AddLiquidityTaskBase):

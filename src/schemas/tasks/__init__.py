@@ -5,6 +5,7 @@ from .base.supply import SupplyTaskBase
 from .base.swap import SwapTaskBase
 from .base.trade import TradeTaskBase
 from .base.withdraw import WithdrawTaskBase
+from .base.deposit import DepositTaskBase
 
 
 from .the_aptos_bridge import TheAptosBridgeTask
@@ -37,3 +38,22 @@ from .sushi import SushiSwapTask
 
 from .random_task.swap import RandomSwapTask
 from .random_task.liquidity import RandomAddLiquidityTask
+
+from .virtual_task.pancake import PancakeSwapVirtualTask
+from .virtual_task.liquid_swap import LiquidSwapSwapVirtualTask
+from .virtual_task.liquid_swap import LiquidSwapAddLiquidityVirtualTask
+from .virtual_task.liquid_swap import LiquidSwapRemoveLiquidityVirtualTask
+from .virtual_task.thala import ThalaAddLiquidityVirtualTask
+from .virtual_task.thala import ThalaRemoveLiquidityVirtualTask
+from .virtual_task.thala import ThalaSwapVirtualTask
+from .virtual_task.thala import ThalaWithdrawVirtualTask
+from .virtual_task.abel import AbelSupplyVirtualTask
+from .virtual_task.abel import AbelWithdrawVirtualTask
+from .virtual_task.merkle import MerklePlaceOpenOrderVirtualTask
+from .virtual_task.merkle import MerklePlaceCancelOrderVirtualTask
+from .virtual_task.amnis import AmnisMintAndStakeVirtualTask
+from .virtual_task.amnis import AmnisUnstakeVirtualTask
+from .virtual_task.gator import GatorTradeVirtualTask
+from .virtual_task.gator import GatorDepositVirtualTask
+from .virtual_task.gator import GatorWithdrawVirtualTask
+from .virtual_task.sushi import SushiSwapVirtualTask

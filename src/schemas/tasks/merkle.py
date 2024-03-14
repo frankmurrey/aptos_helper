@@ -39,11 +39,12 @@ class MerklePlaceOpenOrderTask(
 
     slippage: float = 0.5
 
+    min_amount_out_range = (2, None)
+
     min_amount_out: float = 2
     max_amount_out: float = 2
 
     pseudo_order: bool = False
-    reverse_action: bool = False
     use_referral: bool = False
 
     order_type: enums.OrderType = enums.OrderType.LONG
@@ -53,4 +54,5 @@ class MerklePlaceOpenOrderTask(
 
     @property
     def action_info(self):
-        return self.order_type.value.title()
+        suffix = "+-" if self.reverse_action else ""
+        return self.order_type.value.title() + suffix

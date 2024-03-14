@@ -5,6 +5,7 @@ from src import enums
 
 from src.schemas.tasks import TradeTaskBase
 from src.schemas.tasks import WithdrawTaskBase
+from src.schemas.tasks import DepositTaskBase
 from src.schemas import validation_mixins
 
 from modules.gator.trade import GatorTrade
@@ -21,9 +22,7 @@ class GatorTradeTask(
     module: Callable = Field(default=GatorTrade)
 
 
-class GatorDepositTask(
-    validation_mixins.MinMaxAmountOutValidationMixin
-):
+class GatorDepositTask(DepositTaskBase):
     module_name: enums.ModuleName = enums.ModuleName.GATOR
     module_type: enums.ModuleType = enums.ModuleType.DEPOSIT
     module: Callable = Field(default=GatorDeposit)
