@@ -157,7 +157,7 @@ class ThalaWithdraw(SingleCoinModuleBase):
 
         return int(response.json()[0])
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         amount_in_wei = self.get_supply_amount()
         if amount_in_wei is None:
             logger.error("Failed to get supply amount")
@@ -183,7 +183,7 @@ class ThalaWithdraw(SingleCoinModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload = self.build_transaction_payload()
+        txn_payload = self.build_txn_payload_data()
         if txn_payload is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

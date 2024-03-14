@@ -1,4 +1,3 @@
-import time
 from typing import Union
 
 from aptos_sdk.account import Account
@@ -10,10 +9,7 @@ from aptos_sdk.type_tag import StructTag
 from loguru import logger
 
 from src.schemas.tasks.base.swap import SwapTaskBase
-from utils.delay import get_delay
 from src.schemas.action_models import TransactionPayloadData
-from src.schemas.action_models import ModuleExecutionResult
-from src import enums
 from src.schemas.wallet_data import WalletData
 
 
@@ -99,26 +95,26 @@ class ThalaSwap(SwapModuleBase):
             amount_y_decimals=route.amount_out
         )
 
-    def build_reverse_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_reverse_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         wallet_y_balance_wei = self.get_wallet_token_balance(
             wallet_address=self.account.address(),
-            token_address=self.coin_y.contract_address
+            token_address=self.coin_x.contract_address
         )
 
         if wallet_y_balance_wei == 0:
-            logger.error(f"Wallet {self.coin_y.symbol.upper()} balance = 0")
+            logger.error(f"Wallet {self.coin_x.symbol.upper()} balance = 0")
             return None
 
-        if self.initial_balance_y_wei is None:
-            logger.error(f"Error while getting initial balance of {self.coin_y.symbol.upper()}")
+        if self.initial_balance_x_wei is None:
+            logger.error(f"Error while getting initial balance of {self.coin_x.symbol.upper()}")
             return None
 
-        amount_out_y_wei = wallet_y_balance_wei - self.initial_balance_y_wei
+        amount_out_y_wei = wallet_y_balance_wei - self.initial_balance_x_wei
         if amount_out_y_wei <= 0:
-            logger.error(f"Wallet {self.coin_y.symbol.upper()} balance less than initial balance")
+            logger.error(f"Wallet {self.coin_x.symbol.upper()} balance less than initial balance")
             return None
 
-        amount_out_y_wei_decimals = amount_out_y_wei / (10 ** self.token_y_decimals)
+        amount_out_y_wei_decimals = amount_out_y_wei / (10 ** self.token_x_decimals)
 
         cli = PoolDataClient(data_url="https://app.thala.fi/api/pool-balances")
         pool_data = cli.get_pool_data()
@@ -133,8 +129,8 @@ class ThalaSwap(SwapModuleBase):
 
         route = find_route_given_exact_input(
             graph=graph,
-            start_token=self.coin_y.contract_address,
-            end_token=self.coin_x.contract_address,
+            start_token=self.coin_x.contract_address,
+            end_token=self.coin_y.contract_address,
             amount_in=amount_out_y_wei_decimals,
             max_hops=1
         )
@@ -145,8 +141,8 @@ class ThalaSwap(SwapModuleBase):
         encoded_route = encode_route(
             route=route,
             slippage_percentage=self.task.slippage,
-            token_in_decimals=self.token_y_decimals,
-            token_out_decimals=self.token_x_decimals
+            token_in_decimals=self.token_x_decimals,
+            token_out_decimals=self.token_y_decimals
         )
 
         transaction_args = [TransactionArgument(arg, Serializer.u64) for arg in encoded_route.args]
@@ -164,46 +160,3 @@ class ThalaSwap(SwapModuleBase):
             amount_x_decimals=route.amount_in,
             amount_y_decimals=route.amount_out
         )
-
-    def send_txn(self) -> ModuleExecutionResult:
-        if self.check_local_tokens_data() is False:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = f"Failed to fetch local tokens data"
-            return self.module_execution_result
-
-        txn_payload_data = self.build_transaction_payload()
-        if txn_payload_data is None:
-            self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-            self.module_execution_result.execution_info = "Error while building transaction payload"
-            return self.module_execution_result
-
-        txn_status = self.send_swap_type_txn(
-            account=self.account,
-            txn_payload_data=txn_payload_data
-        )
-
-        ex_status = txn_status.execution_status
-
-        if ex_status != enums.ModuleExecutionStatus.SUCCESS and ex_status != enums.ModuleExecutionStatus.SENT:
-            return txn_status
-
-        if self.task.reverse_action is True:
-            delay = get_delay(self.task.min_delay_sec, self.task.max_delay_sec)
-            logger.info(f"Waiting {delay} seconds before reverse action")
-            time.sleep(delay)
-
-            reverse_txn_payload_data = self.build_reverse_transaction_payload()
-            if reverse_txn_payload_data is None:
-                self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
-                self.module_execution_result.execution_info = "Error while building reverse transaction payload"
-                return self.module_execution_result
-
-            reverse_txn_status = self.send_swap_type_txn(
-                account=self.account,
-                txn_payload_data=reverse_txn_payload_data,
-                is_reverse=True
-            )
-
-            return reverse_txn_status
-
-        return txn_status
