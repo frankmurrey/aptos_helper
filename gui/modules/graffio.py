@@ -7,6 +7,8 @@ from gui.modules.txn_settings_frame import TxnSettingFrame
 from gui.objects import CTkCustomTextBox
 
 
+# DEPRECATED
+
 class GraffioTab:
     def __init__(
             self,

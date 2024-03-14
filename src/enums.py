@@ -6,6 +6,7 @@ class ModuleType(str, Enum):
     MINT = "mint"
     SUPPLY = "supply"
     BORROW = "borrow"
+    DEPOSIT = "deposit"
     WITHDRAW = "withdraw"
     LIQUIDITY_ADD = "liq_add"
     LIQUIDITY_REMOVE = "liq_remove"
@@ -19,6 +20,10 @@ class ModuleType(str, Enum):
     TRANSFER = "transfer"
     DRAW = "draw"
     COLLECT = "collect"
+    PLACE_OPEN_ORDER = "open order"
+    PLACE_CANCEL_ORDER = "cancel order"
+    TRADE = "trade"
+    UNSTAKE = "unstake"
 
 
 class ModuleName(str, Enum):
@@ -33,7 +38,28 @@ class ModuleName(str, Enum):
     UNLOCK = "unlock"
     GRAFFIO = "graffio"
     NFT_COLLECT = "nft"
+    MERKLE = "merkle"
+    AMNIS = "amnis"
+    GATOR = "gator"
+    SUSHI = "sushi"
 
+
+class TabName(str, Enum):
+    SWAP = "Swap"
+    ADD_LIQUIDITY = "Add Liquidity"
+    REMOVE_LIQUIDITY = "Remove Liquidity"
+    SUPPLY_LENDING = "Supply Lending"
+    DEPOSIT = "Deposit"
+    WITHDRAW = "Withdraw"
+    TRANSFER = "Transfer"
+    BRIDGE = "Aptos Bridge"
+    DELEGATE = "Delegate"
+    UNLOCK = "Unlock"
+    NFT_COLLECT = "NFT Collect"
+    MERKLE = "Merkle"
+    TRADE = "Trade"
+    MINT = "Mint"
+    UNSTAKE = "Unstake"
 
 
 class TaskStatus(str, Enum):
@@ -68,5 +94,16 @@ class ModuleExecutionStatus(str, Enum):
     SENT = "sent"
     ERROR = "error"
 
+
 class MiscTypes(str, Enum):
     RANDOM = "random"
+
+
+class RunMode(str, Enum):
+    SYNC = "sync"
+    ASYNC = "async"
+
+
+class OrderType(str, Enum):
+    SHORT = "short"
+    LONG = "long"

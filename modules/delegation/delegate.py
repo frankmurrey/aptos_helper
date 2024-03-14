@@ -13,6 +13,7 @@ from src.schemas.action_models import TransactionPayloadData
 
 if TYPE_CHECKING:
     from src.schemas.tasks import DelegateTask
+    from src.schemas.wallet_data import WalletData
 
 
 class Delegate(ModuleBase):
@@ -24,13 +25,15 @@ class Delegate(ModuleBase):
             account: Account,
             task: 'DelegateTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -38,7 +41,7 @@ class Delegate(ModuleBase):
 
         self.coin_x = Tokens().get_by_name("Aptos")
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         wallet_token_balance_wei = self.get_wallet_token_balance(
             wallet_address=self.account.address(),
             token_address=self.coin_x.contract_address
@@ -97,7 +100,7 @@ class Delegate(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

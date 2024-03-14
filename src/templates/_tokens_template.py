@@ -1,4 +1,4 @@
-TOKENS_DATA = [
+DEFAULT_TOKENS_DATA = [
     {
         "symbol": "aptos",
         "contract_address": "0x1::aptos_coin::AptosCoin",
@@ -7,7 +7,11 @@ TOKENS_DATA = [
             "pancake",
             "abel",
             "thala",
-            "liquid_swap"
+            "liquid_swap",
+            "gator",
+            "amnis",
+            "sushi"
+
         ]
     },
     {
@@ -20,7 +24,10 @@ TOKENS_DATA = [
             "abel",
             "thala",
             "liquid_swap",
-            "the_aptos_bridge"
+            "the_aptos_bridge",
+            "gator",
+            "sushi"
+
         ]
     },
     {
@@ -33,7 +40,39 @@ TOKENS_DATA = [
             "abel",
             "thala",
             "liquid_swap",
-            "the_aptos_bridge"
+            "the_aptos_bridge",
+            "sushi"
         ]
     },
+{
+        "symbol": "mod",
+        "contract_address": "0x6f986d146e4a90b828d8c12c14b6f4e003fdff11a8eecceceb63744363eaac01::mod_coin::MOD",
+        "gecko_id": "move-dollar",
+        "aptos_bridge_handle": "",
+        "available_protocols": [
+            "pancake",
+            "abel",
+            "thala",
+            "liquid_swap"
+            "sushi"
+        ]
+    },
+{
+        "symbol": "amAPT",
+        "contract_address": "0x111ae3e5bc816a5e63c2da97d0aa3886519e0cd5e4b046659fa35796bd11542a::amapt_token::AmnisApt",
+        "gecko_id": "",
+        "aptos_bridge_handle": "",
+        "available_protocols": [
+            "pancake",
+            "liquid_swap",
+            "amnis"
+        ]
+    }
+]
+
+TOKENS_DATA = [
+    {
+        "default": DEFAULT_TOKENS_DATA,
+        "custom": []
+    }
 ]

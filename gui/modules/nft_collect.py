@@ -3,7 +3,7 @@ from tkinter import messagebox, Variable
 import customtkinter
 from pydantic.error_wrappers import ValidationError
 
-from src.schemas.tasks import NftCollectTask
+from src.schemas import tasks
 from gui.modules.txn_settings_frame import TxnSettingFrame
 from gui.objects import CTkCustomTextBox
 
@@ -12,9 +12,11 @@ class NftCollectTab:
     def __init__(
             self,
             tabview,
-            tab_name
+            tab_name,
+            task: tasks.NftCollectTask = None,
     ):
         self.tabview = tabview
+        self.tab_name = tab_name
 
         self.tabview.tab(tab_name).grid_columnconfigure(0, weight=1)
 
@@ -29,6 +31,7 @@ class NftCollectTab:
         self.collect_frame = NftCollectFrame(
             master=self.tabview.tab(tab_name),
             grid=collect_frame_grid,
+            task=task
         )
 
         txn_settings_grid = {
@@ -64,7 +67,7 @@ class NftCollectTab:
 
     def build_config_data(self):
         try:
-            config_data = NftCollectTask(
+            config_data = tasks.NftCollectTask(
                 gas_limit=self.txn_settings_frame.gas_limit_entry.get(),
                 gas_price=self.txn_settings_frame.gas_price_entry.get(),
                 forced_gas_limit=self.txn_settings_frame.forced_gas_limit_check_box.get(),
@@ -83,13 +86,22 @@ class NftCollectTab:
 
 
 class NftCollectFrame(customtkinter.CTkFrame):
-    def __init__(self, master, grid, **kwargs):
+    def __init__(
+            self,
+            master,
+            grid,
+            task: tasks.NftCollectTask,
+            **kwargs
+    ):
         super().__init__(master, **kwargs)
+
+        self.task = task
 
         self.grid(**grid)
         self.grid_columnconfigure((0, 1), weight=1, uniform="a")
         self.grid_rowconfigure((0, 1), weight=1)
 
+        # DELAY LABEL
         self.delay_label = customtkinter.CTkLabel(
             self,
             text="Delay between transfers if multiple NFT found:",
@@ -97,14 +109,18 @@ class NftCollectFrame(customtkinter.CTkFrame):
         )
         self.delay_label.grid(row=0, column=0, padx=20, pady=(10, 0), sticky="w", columnspan=2)
 
+        # MIN DELAY
         self.min_delay_label = customtkinter.CTkLabel(self, text="Min delay sec:")
         self.min_delay_label.grid(row=1, column=0, padx=20, pady=(5, 0), sticky="w")
 
-        self.min_delay_entry = customtkinter.CTkEntry(self, width=120, textvariable=Variable(value=10))
+        min_delay = getattr(self.task, "min_delay_nft_transfer_sec", 10)
+        self.min_delay_entry = customtkinter.CTkEntry(self, width=120, textvariable=Variable(value=min_delay))
         self.min_delay_entry.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="w")
 
+        # MAX DELAY
         self.max_delay_label = customtkinter.CTkLabel(self, text="Max delay sec:")
         self.max_delay_label.grid(row=1, column=1, padx=20, pady=(5, 0), sticky="w")
 
+        max_delay = getattr(self.task, "max_delay_nft_transfer_sec", 20)
         self.max_delay_entry = customtkinter.CTkEntry(self, width=120, textvariable=Variable(value=20))
         self.max_delay_entry.grid(row=2, column=1, padx=20, pady=(0, 20), sticky="w")

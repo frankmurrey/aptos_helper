@@ -1,7 +1,7 @@
 import random
 import time
 import json
-from typing import Union, TYPE_CHECKING, List, Callable, Any
+from typing import Union, TYPE_CHECKING, List
 
 from aptos_sdk.transactions import EntryFunction, TransactionArgument, Serializer
 from aptos_sdk.account import Account, AccountAddress
@@ -12,7 +12,6 @@ from loguru import logger
 import config
 from modules.base import ModuleBase
 from modules.nft_collect import data
-from contracts.tokens.main import Tokens, TokenBase
 from src import enums
 from src.schemas.wallet_data import WalletData
 from src.schemas.action_models import ModuleExecutionResult
@@ -35,7 +34,8 @@ class NftCollect(ModuleBase):
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -91,6 +91,7 @@ class NftCollect(ModuleBase):
         try:
             all_collectibles = self.get_all_collectibles_data_for_wallet(wallet_address)
             if all_collectibles is None:
+                logger.error(f"Failed while getting collectibles list for wallet")
                 return None
 
             v2_collectibles = []
@@ -104,7 +105,7 @@ class NftCollect(ModuleBase):
             logger.error(f"Error while getting pools data: {e}")
             return None
 
-    def build_transaction_payload(
+    def build_txn_payload_data(
             self,
             token_address: str
     ) -> Union[TransactionPayloadData, None]:
@@ -137,7 +138,7 @@ class NftCollect(ModuleBase):
             amount_y_decimals=0
         )
 
-    def send_txn(self):
+    def send_txn(self) -> ModuleExecutionResult:
         all_v2_collectibles = self.get_v2_collectibles_for_wallet(wallet_address=self.account.address())
         if all_v2_collectibles is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
@@ -151,7 +152,7 @@ class NftCollect(ModuleBase):
                 logger.error(f"{index + 1} NFT address is not found in collectible: {collectible}")
                 continue
 
-            payload = self.build_transaction_payload(token_address)
+            payload = self.build_txn_payload_data(token_address)
             if payload is None:
                 self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
                 self.module_execution_result.execution_info = "Error while building transaction payload"

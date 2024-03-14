@@ -13,6 +13,7 @@ from src.schemas.action_models import TransactionPayloadData
 
 if TYPE_CHECKING:
     from src.schemas.tasks import UnlockTask
+    from src.schemas.wallet_data import WalletData
 
 
 class Unlock(ModuleBase):
@@ -24,13 +25,15 @@ class Unlock(ModuleBase):
             account: Account,
             task: 'UnlockTask',
             base_url: str,
+            wallet_data: 'WalletData',
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
 
         self.account = account
@@ -61,7 +64,7 @@ class Unlock(ModuleBase):
 
         return int(response_json[0])
 
-    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
+    def build_txn_payload_data(self) -> Union[TransactionPayloadData, None]:
         validator_address = AccountAddress.from_hex(self.task.validator_address)
 
         current_staked_balance = self.get_current_staked_balance(
@@ -97,7 +100,7 @@ class Unlock(ModuleBase):
         )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload_data = self.build_transaction_payload()
+        txn_payload_data = self.build_txn_payload_data()
         if txn_payload_data is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

@@ -2,16 +2,18 @@ import customtkinter
 from src.schemas import tasks
 
 from gui.modules.txn_settings_frame import TxnSettingFrame
-from gui.wallet_right_window.wallet_window.validator_address_entry import ValidatorAddressEntry
+from gui.right_frame.wallet_components.validator_address_entry import ValidatorAddressEntry
 
 
 class UnlockTab:
     def __init__(
             self,
             tabview,
-            tab_name
+            tab_name,
+            task: tasks.UnlockTask = None,
     ):
         self.tabview = tabview
+        self.tab_name = tab_name
 
         self.tabview.tab(tab_name).grid_columnconfigure(0, weight=1)
 
@@ -25,7 +27,8 @@ class UnlockTab:
 
         self.unlock_frame = UnlockFrame(
             master=self.tabview.tab(tab_name),
-            grid=unlock_frame_grid
+            grid=unlock_frame_grid,
+            task=task,
         )
 
         txn_settings_grid = {
@@ -51,21 +54,24 @@ class UnlockTab:
 
 
 class UnlockFrame(customtkinter.CTkFrame):
-    def __init__(self, master, grid, **kwargs):
+    def __init__(
+            self,
+            master,
+            grid,
+            task: tasks.UnlockTask,
+            **kwargs):
         super().__init__(master, **kwargs)
 
-        self.frame = customtkinter.CTkFrame(master)
-        self.frame.grid(**grid)
-        self.frame.grid_columnconfigure((0, 1), weight=0, uniform="a")
-        self.frame.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), weight=1)
+        self.task = task
 
+        self.grid(**grid)
+        self.grid_columnconfigure((0, 1), weight=0, uniform="a")
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), weight=1)
+
+        # VALIDATOR ADDRESS
+        address = getattr(self.task, "validator_address", "")
         self.validator_address_entry = ValidatorAddressEntry(
-            self.frame,
-            pair_address="",
+            self,
+            pair_address=address,
         )
         self.validator_address_entry.grid(row=0, column=0, padx=20, pady=(10, 10), sticky="w")
-
-
-
-
-

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
@@ -10,15 +10,43 @@ from src import enums
 
 
 class TaskBase(BaseModel):
+    """
+    Task Base Schema
+
+    Attributes:
+        module_type: type of the task's module
+        module_name: name of the task's module
+        module: task's module
+
+        task_id: id of the task
+        task_status: status of the task execution
+
+        probability: execution probability of the task
+
+        result_hash: result hash of the task's transaction
+        result_info: result info of the task
+
+        forced_gas_limit: forced gas limit of the task's transaction
+        max_fee: max fee of the task's transaction
+
+        # TODO: Fill docs
+    """
     class Config:
         extra = "allow"
+
+    is_virtual: bool = False
 
     module_type: enums.ModuleType
     module_name: enums.ModuleName
     module: Optional[Callable]
 
-    task_id: UUID = Field(default_factory=uuid4)
+    task_id: Union[UUID, str] = Field(default_factory=uuid4)
     task_status: enums.TaskStatus = enums.TaskStatus.CREATED
+
+    probability: int = 100
+
+    result_hash: Optional[str] = None
+    result_info: Optional[str] = None
 
     forced_gas_limit: bool = False
     gas_limit: int
@@ -30,6 +58,11 @@ class TaskBase(BaseModel):
 
     reverse_action: bool = False
     reverse_action_task: Optional[Callable] = None
+    origin_action_task: Optional[Callable] = None
+
+    reverse_action_min_delay_sec: int = 1
+    reverse_action_max_delay_sec: int = 2
+
     retries: int = 3
 
     min_delay_sec: float = 1
@@ -79,6 +112,26 @@ class TaskBase(BaseModel):
 
         value = validation.get_converted_to_float(value, "Max Delay")
         value = validation.get_greater(value, values["min_delay_sec"], "Max Delay")
+
+        return value
+
+    @validator("reverse_action_min_delay_sec", pre=True)
+    def validate_reverse_action_min_delay_sec_pre(cls, value, values):
+        if not values["reverse_action"]:
+            return 0
+
+        value = validation.get_converted_to_float(value, "Reverse Action Min Delay")
+        value = validation.get_positive(value, "Reverse Action Min Delay")
+
+        return value
+
+    @validator("reverse_action_max_delay_sec", pre=True)
+    def validate_reverse_action_max_delay_sec_pre(cls, value, values):
+        if not values["reverse_action"]:
+            return 0
+
+        value = validation.get_converted_to_float(value, "Reverse Action Max Delay")
+        value = validation.get_greater(value, values["reverse_action_min_delay_sec"], "Reverse Action Max Delay")
 
         return value
 

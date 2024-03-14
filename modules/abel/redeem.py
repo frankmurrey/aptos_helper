@@ -1,16 +1,18 @@
+from typing import Union
+
 from aptos_sdk.account import Account, AccountAddress
 from aptos_sdk.transactions import EntryFunction
 from aptos_sdk.transactions import Serializer
 from aptos_sdk.transactions import TransactionArgument
 from aptos_sdk.type_tag import TypeTag
 from aptos_sdk.type_tag import StructTag
-from aptos_sdk.client import ResourceNotFound
-from loguru import logger
 
 from modules.base import ModuleBase
 from src.schemas.tasks.base.withdraw import WithdrawTaskBase
 from src import enums
 from src.schemas.action_models import ModuleExecutionResult
+from src.schemas.action_models import TransactionPayloadData
+from src.schemas.wallet_data import WalletData
 
 
 class AbleFinanceRedeem(ModuleBase):
@@ -22,13 +24,15 @@ class AbleFinanceRedeem(ModuleBase):
             account: Account,
             task: WithdrawTaskBase,
             base_url: str,
+            wallet_data: WalletData,
             proxies: dict = None
     ):
         super().__init__(
             task=task,
             base_url=base_url,
             proxies=proxies,
-            account=account
+            account=account,
+            wallet_data=wallet_data
         )
         self.coin_x = self.tokens.get_by_name(task.coin_x)
 
@@ -54,7 +58,7 @@ class AbleFinanceRedeem(ModuleBase):
             logger.error(f"LP not found on wallet balance")
             return None
 
-    def build_transaction_payload(self):
+    def build_transaction_payload(self) -> Union[TransactionPayloadData, None]:
         max_redeem_amount = self.get_max_redeem_amount(
             coin_contract=self.coin_x.contract_address,
             account_address=self.account.address()
@@ -81,10 +85,15 @@ class AbleFinanceRedeem(ModuleBase):
             transaction_args
         )
 
-        return payload
+        return TransactionPayloadData(
+            payload=payload,
+            amount_x_decimals=max_redeem_amount / 10 ** self.coin_x.decimals,
+            amount_y_decimals=0
+        )
 
     def send_txn(self) -> ModuleExecutionResult:
-        txn_payload = self.build_transaction_payload()
+
+        txn_payload = self.build_txn_payload_data()
         if txn_payload is None:
             self.module_execution_result.execution_status = enums.ModuleExecutionStatus.ERROR
             self.module_execution_result.execution_info = "Error while building transaction payload"

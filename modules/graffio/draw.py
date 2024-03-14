@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 MAX_COLOR_INDEX = 7
 
 
+# DEPRECATED MODULE
+
+
 class GraffioDraw(ModuleBase):
     router_address = "0x5d45bb2a6f391440ba10444c7734559bd5ef9053930e3ef53d05be332518522b"
     res_address = "0x915efe6647e0440f927d46e39bcb5eb040a7e567e1756e002073bc6e26f2cd23"

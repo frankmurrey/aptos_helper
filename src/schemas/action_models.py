@@ -11,8 +11,8 @@ class ModuleExecutionResult(BaseModel):
     # TODO remake retry_needed
     execution_status: enums.ModuleExecutionStatus = enums.ModuleExecutionStatus.FAILED
     retry_needed: bool = True
-    execution_info: Optional[str] = None
-    hash: Optional[str] = None
+    execution_info: Optional[str] = ""
+    hash: Optional[str] = ""
 
 
 class TransactionSimulationResult(BaseModel):

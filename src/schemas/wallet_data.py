@@ -15,6 +15,8 @@ import config
 
 
 class WalletData(BaseModel):
+    index: int = -1
+
     name: Optional[str] = None
     private_key: str
     pair_address: Optional[str] = None
