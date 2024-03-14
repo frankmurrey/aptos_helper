@@ -17,29 +17,13 @@ def is_linux() -> bool:
 
 
 @functools.cache
-def mingw_installed() -> bool:
-    try:
-
-        exec_result = (
-            subprocess.check_output(["gcc", "--version"])
-            .decode("utf-8")
-            .lower()
-        )
-
-        return "mingw" in exec_result
-
-    except FileNotFoundError:
-        return False
-
-
-@functools.cache
 def get_missed_requirements() -> List[str]:
     """
     Get requirements that are not installed.
     Returns: list of missing requirements
     """
 
-    with open(os.path.join(paths.MAIN_DIR, "req.txt"), "r", encoding="utf-8") as f:
+    with open(os.path.join(paths.MAIN_DIR, "req.txt"), "r", encoding="utf-16") as f:
         requirements = f.readlines()
         requirements = [
             req.split("==")[0].strip().lower()
